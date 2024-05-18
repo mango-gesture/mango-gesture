@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="/_assets/style/site.css" rel="stylesheet">
+    <link href="/_assets/img/favicon.png" rel="icon" type="image/png">
+    <script src="https://kit.fontawesome.com/9006c49789.js" crossorigin="anonymous"></script>
+    <!-- jQuery library -->
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"></script>
+    <title>CS107E </title>
+  </head>
+
+  <!-- fill to height of viewport, flex col, footer will be mt-auto -->
+  <body class="d-flex flex-column min-vh-100">
+    <nav class="top navbar navbar-expand-md navbar-dark" role="navigation">
+  <img class="navbar-brand navbar-brand-image" src="/_assets/img/berry.png">
+  <a class="navbar-brand" href="/"> CS107e Fall 2022 </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="navbar-collapse collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav ml-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/assignments/">Assignments</a></li>
+          <li class="nav-item"><a class="nav-link" href="/labs/">Labs</a></li>
+          <li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false"> Resources </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="/about/">About the course</a>
+            <a class="dropdown-item" href="/policies/">Policies</a>
+            <a class="dropdown-item" href="/guides/">Guides</a>
+            <a class="dropdown-item" href="/project_gallery/">Project Gallery</a>
+            <a class="dropdown-item" href="/demos/">External demos</a>
+            <a class="dropdown-item" href="/resources/">External resources</a>
+          </div>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="/schedule/">🗓Schedule</a></li>
+          <li class="nav-item"><a class="nav-link" href="/search/">🔍Search</a></li>
+    </ul>
+    <!---
+    <form class="form-inline my-2 my-lg-0">
+      <input class="form-control mr-sm-2" type="search" id="search-text" name="query" placeholder="🔍 Search CS106B..." aria-label="Search" action="search">
+    </form>
+    --->
+  </div>
+</nav>
+
+<style>
+  .top.navbar {
+    margin-bottom: 2rem;
+  }
+  .top.navbar-dark {
+    background-color: #060;
+  }
+  .top .nav-item > a {
+    color: #ccc !important;
+  }
+  .top .nav-item > a:hover {
+    color: white !important;
+  }
+  .top .navbar-brand-image {
+    padding: 2px !important;
+    width: 2rem;
+  }
+
+</style>
+    <main class="main container-fluid" role="main"><div class="body-container container-fluid" data-spy="scroll" data-target="#toc">
+
+<h1 class="title"></h1>
+<hr>
+
+
+
+<div id="content">
+<p>#Interfacing an ArduCAM with the Raspberry Pi</p>
+
+<p><img src="/lectures/Sensors/code/arducam/photos/hoover_tower.png" alt=""></p>
+
+<p>##Team Members
+Arjun Balasingam and Eric Fritz</p>
+
+<p>###Roles
+The following is a breakdown of the tasks we each took on, while working on this project:</p>
+<ul>
+  <li>Arjun: SPI driver, ArduCAM Library, Image Display and Modes</li>
+  <li>Eric: I2C driver, OV2640 Library, Shell</li>
+</ul>
+
+<p>Note that we both cross-checked and debugged all of the code, so we were confident it is robust.</p>
+
+<p>###Overview
+The goal of this project was to <strong>interface a camera</strong> with the Raspberry Pi, and <strong>develop a library</strong> that makes it convenient to access the various features that the camera offers. To demonstrate these features, we put together a shell, where one can enter commands and see the image output rendered on the screen.</p>
+
+<p>The selected camera was an <a href="http://www.arducam.com/tag/arducam-mini/" target="_blank" rel="noopener noreferrer">ArduCAM Mini</a>, a 2 MP camera designed to work with the <a href="https://www.arduino.cc/" target="_blank" rel="noopener noreferrer">Arduino</a>. This camera was chosen because the hardware was designed to be easily interfaced with microcontrollers. The ArduCAM utilizes an Omnivision CMOS Image Sensor <a href="/lectures/Sensors/code/arducam/Datasheets/OV2640DS.pdf">OV2640</a>. It communicates over SPI and I2C, two protocols that are supported on Raspberry Pi hardware.</p>
+
+<p>The sections below describe the components of the camera library we built, including SPI and I2C drivers, an image sensor driver, and a camera driver.</p>
+
+<p>###Communication Drivers
+The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.</p>
+
+<p>Our <a href="inc/spi.h">SPI driver</a> consists of the following functions:</p>
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">spi_init</code>: Initializes the RPi SPI0 peripheral with an inputted clock <code class="language-plaintext highlighter-rouge">pol</code> (polarity), <code class="language-plaintext highlighter-rouge">pha</code> (phase), and <code class="language-plaintext highlighter-rouge">clk_div</code> (scale).</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">spi_txrx</code>: Transmits tx_buf of length <code class="language-plaintext highlighter-rouge">len</code> bytes. Stores received contents into <code class="language-plaintext highlighter-rouge">rx_buf</code>.</li>
+</ul>
+
+<p>Our <a href="inc/i2c.h">I2C driver</a> consists of the following functions:</p>
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">i2c_init</code>: Initializes the RPi I2C peripheral.</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">i2c_set_slave</code>: Sets the slave address to be <code class="language-plaintext highlighter-rouge">slave_addr</code>.</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">i2c_write</code>: Writes a buffer <code class="language-plaintext highlighter-rouge">data</code> of length <code class="language-plaintext highlighter-rouge">len</code> over I2C.</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">i2c_read</code>: Reads <code class="language-plaintext highlighter-rouge">len</code> bytes over I2C. Stores the conents in <code class="language-plaintext highlighter-rouge">buf</code>.</li>
+</ul>
+
+<p>###Wiring Up the ArduCAM to the RPi
+The following pictures show how we wired the ArduCAM up to the RPi:</p>
+
+<p><img src="/lectures/Sensors/code/arducam/photos/arducam_front.JPG" alt="">
+<img src="/lectures/Sensors/code/arducam/photos/wiring.JPG" alt=""></p>
+
+<p>###Device Drivers
+After we implemented and tested the two communications protocols, we created a <a href="inc/arducam.h">driver</a> for the camera to interact with the RPi over SPI and I2C.</p>
+
+<p>Our first step was determining the specifics of SPI and I2C that were required to communicated directly with camera. For instance, writing to an ArduCAM register involved sending an address byte, followed by a data byte. Since the most significant bit of the address must be set in order to write to that particular register, we bitwise-or the address with <code class="language-plaintext highlighter-rouge">0x80</code>. To read a register value, we send the address on the first byte, ignore the first read, send a dummy value on the second byte, and read that incoming value.</p>
+
+<p>With these two read and write functionalities, we wrote several functions that wrote to and read from ArduCAM registers. These functions were all folded into <code class="language-plaintext highlighter-rouge">arducam_init</code>, which initializes and verifies the SPI connection, and cleared the FIFO. <code class="language-plaintext highlighter-rouge">stream_image</code> captures continously, rendering a live camera stream to the screen. <code class="language-plaintext highlighter-rouge">capture_image</code> initiates and executess a single capture, and stores that image in a buffer.</p>
+
+<p>Within the ArduCAM library, we integrated a <a href="inc/omni.h">driver</a> for the Omnivision image sensor. <code class="language-plaintext highlighter-rouge">omni_init</code> initializes and verfies an I2C connection, by reading the sensor's address. It also prepares the image sensor to return image output in <code class="language-plaintext highlighter-rouge">mode</code> format (BMP or JPEG). Finally, we wrote a set of functions to control brightness, contrast, saturation, and special effect parameters that the image sensor offers. The I2C commands we followed are listed in the <a href="Datasheets/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf">OV2640 Software Applications Notes</a>.</p>
+
+<p>We chose to use the QVGA format for our driver due to the fact that it sends bitmap pixel data and that it's a small resolution (360 x 240). We didn't spend any time optimizing our graphics library so larger images took too long to display.</p>
+
+<p>To make the process interactive and be able demonstrate the functionalities provided by our camera library, we implemented a shell that executed the commands from user input and updated the display to show the results.</p>
+
+<p>###Debugging and Testing
+Throughout this project, the most useful tool for debugging was a logic analyzer. We made incremental changes to the SPI and I2C drivers, making sure each time that the correct test messages were being sent. Our largest roadblock was not being able to detect the end of a single capture (by polling a bit on a register). The ArduCAM datasheet incorrectly stated the SPI clock phase and polarity. We were able to verify this by comparing the timing diagram on the datasheet (which was correct) with clock (SCLK) traces from the logic analyzer.</p>
+
+<p>###Camera Library and Features
+The shell has a stream mode which updates the image as fast as our graphics library allows, and a capture mode, which captures and displays a single image. The library contained functions to adjust the brightness, contrast, and saturation, each of which had 5 options to choose (-2, 2). There is also a handful of pre-programmed "filters" such as color biasing, negative, and greyscale. A complete list can be found in <a href="inc/omni_cmds.h">omni.h</a> with the commands required in <a href="inc/omni_cmds.h">omni_cmds.h</a>.</p>
+
+<p><img src="/lectures/Sensors/code/arducam/photos/image_display.png" alt=""></p>
+
+<p>###Collaboration and Help Received
+During the SPI clock phase/polarity issue, we heavily relied on the <a href="https://github.com/ArduCAM/Arduino" target="_blank" rel="noopener noreferrer">ArduCAM's arduino code</a> to debug. The omnivision datasheets were very useful as well.</p>
+
+</div>
+
+
+
+</div>
+
+<style>
+    .body-container {
+        margin: 0 10%;
+        max-width: 55em;
+        width: 80%;
+    }
+    a.toc-link {
+      color: #aaa !important;
+      font-size: 90%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .fixed-top-right {
+        position: fixed;
+        margin-top: 0;
+        margin-left: 0;
+    }
+</style>
+
+</main>
+    <div class="footer navbar-default navbar-static-bottom">
+    <p style="font-size: 65%; color:green; text-align:center;">
+      <i>CS107e Fall 2022 · Site generated 2022-11-07 12:35</i>
+  </p>
+</div>
+  </body>
+
+  <!-- Bootstrap JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script type="text/javascript" src="/_assets/js/lightbox.js"></script>
+  <link rel="stylesheet" href="/_assets/style/lightbox.css">
+</html>
