@@ -29,3 +29,56 @@ MLP_Model* load_mlp_model(void){
 
     return model;
 }
+
+void free_mlp_model(MLP_Model* model){
+    free(model->layers);
+    free(model);
+}
+
+static float tanh(float x){
+    return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
+}
+
+static float gelu(float x){
+    return 0.5 * x * (1 + tanh(0.79788456 * (x + 0.044715 * x * x * x)));
+}
+
+static float softplus(float x){
+    return log(1 + exp(x));
+}
+
+static int round(float x){
+    return (int)(x + 0.5);
+}
+
+static float* forward_layer(const MLP_Layer* layer, const float* input){
+    float* output = malloc(layer->output_neurons * sizeof(float));
+    if(output == NULL)  printf("Error: Unable to allocate memory to output in forward_layer.");
+
+    for(int i=0; i<layer->output_neurons; i++){
+        output[i] = layer->biases[i];
+        for(int j=0; j<layer->input_neurons; j++){
+            output[i] += input[j] * layer->weights[j*layer->output_neurons + i]; // weights are stored in row major order: 'C'
+        }
+        output[i] = layer->output_neurons == 1 ? softplus(output[i]) : gelu(output[i]);
+    }
+    return output;
+}
+
+// Runs inference on the model with the given input
+// Input must be a flattened pair of images (2 x c x h x w)
+// Output is 0 if no gesture, 1 if left swipe, 2 if right swipe
+int forward(MLP_Model* model, const float* input){
+
+    float* output;
+    for(int i=0; i<model->num_layers; i++){
+        output = forward_layer(&model->layers[i], input);
+        free(input);
+        input = output;
+    }
+
+    int out = round(input[0]);
+    free(input);
+    
+    return out;
+}
