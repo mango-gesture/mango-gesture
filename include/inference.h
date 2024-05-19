@@ -23,6 +23,6 @@ typedef struct {
 // Function prototypes for managing MLP model
 MLP_Model* load_mlp_model(void); // Loads MLP model from MODEL_ADDR and returns a pointer to the model
 void free_mlp_model(MLP_Model* model); // Frees the memory allocated for the MLP model
-int forward(MLP_Model* model, const float* input); // Perform inference using the MLP model
+int forward(MLP_Model* model, float* input); // Perform inference using the MLP model
 
 #endif // MLP_INFERENCE_H

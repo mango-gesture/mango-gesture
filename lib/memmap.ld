@@ -13,7 +13,7 @@ SECTIONS
         __bss_start__   = .;
         .bss :              { *(.bss*)  *(.sbss*) *(COMMON) } :data
         __bss_end__     = ALIGN(8);
-        model 0x60000000 : { /* Empty */ } :model // the weights must be written to this section directly
+        .model 0x60000000 : { /* Empty */ } :model // the weights must be written to this section directly
 }
 
 /* Force link of _start and verify correct position */

@@ -17,15 +17,15 @@ MLP_Model* load_mlp_model(void){
     uintptr_t weights_addr = MODEL_ADDR + 4 + model->num_layers*8;
 
     for(int i=0; i<model->num_layers; i++){
-        model->layers[i].input_neurons = *((int*)(MODEL_ADDR + 4 + i*8)); // 4 bytes for num_layers, 8 bytes for each layer since in/out neurons
-        model->layers[i].output_neurons = *((int*)(MODEL_ADDR + 8 + i*8)); // 4 bytes after ^
+        model->layers[i].input_neurons = *((unsigned int*)(MODEL_ADDR + (unsigned long) (4 + i*8))); // 4 bytes for num_layers, 8 bytes for each layer since in/out neurons
+        model->layers[i].output_neurons = *((unsigned int*)(MODEL_ADDR + (unsigned long) (8 + i*8))); // 4 bytes after ^
         model->layers[i].weights = (float*)weights_addr;
         weights_addr += model->layers[i].input_neurons * model->layers[i].output_neurons * sizeof(float); 
         model->layers[i].biases = (float*)weights_addr;
         weights_addr += model->layers[i].output_neurons * sizeof(float);
     }
     
-    print("Loaded a model with %d bytes", weights_addr - MODEL_ADDR);
+    printf("Loaded a model with %ld bytes", weights_addr - MODEL_ADDR);
 
     return model;
 }
@@ -33,6 +33,26 @@ MLP_Model* load_mlp_model(void){
 void free_mlp_model(MLP_Model* model){
     free(model->layers);
     free(model);
+}
+
+static float exp(float x){
+    float next_term = 1;
+    float total = 0;
+    // TODO: add tolerance
+    for (int i = 0 ; i < 20 ; i++){
+        total += next_term;
+        total *= x / (float)(i + 1);
+    }
+    return total;
+}
+
+static float log(float x){
+    // assert (x > 0);
+    float y = 0;  // Initial guess
+    for (int i = 0; i < 100; i++) { // Limit the iterations to prevent infinite loops
+        y = y - 1 + x / exp(y);
+    }
+    return y;
 }
 
 static float tanh(float x){
@@ -68,7 +88,7 @@ static float* forward_layer(const MLP_Layer* layer, const float* input){
 // Runs inference on the model with the given input
 // Input must be a flattened pair of images (2 x c x h x w)
 // Output is 0 if no gesture, 1 if left swipe, 2 if right swipe
-int forward(MLP_Model* model, const float* input){
+int forward(MLP_Model* model, float* input){
 
     float* output;
     for(int i=0; i<model->num_layers; i++){

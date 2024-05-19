@@ -7,8 +7,6 @@
  * Students implement this module in assignment 4.
  *
  * Author: Julie Zelenski <zelenski@cs.stanford.edu>
- * 
- * COPIED FROM 107E INCLUDE
  */
 
 #include <stddef.h> // for size_t
@@ -59,4 +57,16 @@ void free(void *ptr);
  */
 void *sbrk(size_t nbytes);
 
+/*
+ * `memory_report`
+ *
+ * Prints a report of the memory after the program finishes running.
+ * Prints the status of total allocations and frees, reporting the 
+ * allocated blocks that have not been freed at the end of the program.
+ * These leaky blocks are reported along with the call stack that allocated them.
+ * Finally, reports the overall status of the memory, including the total number of
+ * leaked memory blocks, and the total bytes that have been lost.
+ *
+ */
+void memory_report(void);
 #endif
