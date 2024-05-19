@@ -10,7 +10,7 @@ def initialize_mlp(sizes, key):
     weights = []
     for i in range(1, len(sizes)):
         w_key, b_key = random.split(keys[i-1])
-        weights.append((random.normal(w_key, (sizes[i-1], sizes[i])) * scale, random.normal(b_key, (sizes[i], 1)) * scale))
+        weights.append((random.normal(w_key, (sizes[i-1], sizes[i])) * scale, random.normal(b_key, (sizes[i],)) * scale))
     return weights
 
 def qs_mlp(c, h, w, sizes, key, output=1):
@@ -21,6 +21,7 @@ def qs_mlp(c, h, w, sizes, key, output=1):
 def mlp_forward(weights, x):
     """Forward pass of the MLP """
     for w, b in weights:
+        print("SHAPES", x.shape, w.shape, b.shape)
         x = x @ w + b
         x = jax.nn.gelu(x) * (b.shape[0] > 1) + jax.nn.softplus(x) * (b.shape[0] == 1) # final layer is positive
     return x
@@ -50,6 +51,7 @@ def mlp_serialize_binary(params, filename):
             file.write(w.tobytes())
             file.write(b.tobytes())
 
+# NOT WORKING
 def mlp_deserialize_binary(filename):
     with open(filename, 'rb') as file:
         # Read the number of layers
