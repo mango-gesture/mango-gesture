@@ -21,9 +21,9 @@ def qs_mlp(c, h, w, sizes, key, output=1):
 def mlp_forward(weights, x):
     """Forward pass of the MLP """
     for w, b in weights:
-        print("SHAPES", x.shape, w.shape, b.shape)
         x = x @ w + b
-        x = jax.nn.gelu(x) * (b.shape[0] > 1) + jax.nn.softplus(x) * (b.shape[0] == 1) # final layer is positive
+        x = jax.nn.relu(x)
+        # x = jax.nn.gelu(x) * (b.shape[0] > 1) + jax.nn.softplus(x) * (b.shape[0] == 1) # final layer is positive
     return x
 
 batch_mlp_forward = jax.vmap(mlp_forward, in_axes=(None, 0), out_axes=0)
