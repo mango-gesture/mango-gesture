@@ -49,3 +49,26 @@ def mlp_serialize_binary(params, filename):
 
             file.write(w.tobytes())
             file.write(b.tobytes())
+
+def mlp_deserialize_binary(filename):
+    with open(filename, 'rb') as file:
+        # Read the number of layers
+        num_layers = struct.unpack('I', file.read(4))[0]
+
+        # Read each layer's size
+        sizes = []
+        for _ in range(num_layers):
+            neurons_in, neurons_out = struct.unpack('II', file.read(8))
+            sizes.append((neurons_in, neurons_out))
+
+        # Read the weights and biases
+        weights = []
+        biases = []
+        for (neurons_in, neurons_out) in sizes:
+            w = struct.unpack(f'{neurons_in * neurons_out}f', file.read(4 * neurons_in * neurons_out))
+            b = struct.unpack(f'{neurons_out}f', file.read(4 * neurons_out))
+
+            weights.append(jnp.array(w).reshape(neurons_in, neurons_out))
+            biases.append(jnp.array(b))
+
+    return list(zip(weights, biases))
