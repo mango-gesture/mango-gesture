@@ -10,7 +10,7 @@ def initialize_mlp(sizes, key):
     weights = []
     for i in range(1, len(sizes)):
         w_key, b_key = random.split(keys[i-1])
-        weights.append((random.normal(w_key, (sizes[i-1], sizes[i])) * scale, random.normal(b_key, (sizes[i], 1)) * scale))
+        weights.append((random.normal(w_key, (sizes[i-1], sizes[i])) * scale, random.normal(b_key, (sizes[i],)) * scale))
     return weights
 
 def qs_mlp(c, h, w, sizes, key, output=1):
@@ -21,6 +21,7 @@ def qs_mlp(c, h, w, sizes, key, output=1):
 def mlp_forward(weights, x):
     """Forward pass of the MLP """
     for w, b in weights:
+        print("SHAPES", x.shape, w.shape, b.shape)
         x = x @ w + b
         x = jax.nn.gelu(x) * (b.shape[0] > 1) + jax.nn.softplus(x) * (b.shape[0] == 1) # final layer is positive
     return x
@@ -49,3 +50,27 @@ def mlp_serialize_binary(params, filename):
 
             file.write(w.tobytes())
             file.write(b.tobytes())
+
+# NOT WORKING
+def mlp_deserialize_binary(filename):
+    with open(filename, 'rb') as file:
+        # Read the number of layers
+        num_layers = struct.unpack('I', file.read(4))[0]
+
+        # Read each layer's size
+        sizes = []
+        for _ in range(num_layers):
+            neurons_in, neurons_out = struct.unpack('II', file.read(8))
+            sizes.append((neurons_in, neurons_out))
+
+        # Read the weights and biases
+        weights = []
+        biases = []
+        for (neurons_in, neurons_out) in sizes:
+            w = struct.unpack(f'{neurons_in * neurons_out}f', file.read(4 * neurons_in * neurons_out))
+            b = struct.unpack(f'{neurons_out}f', file.read(4 * neurons_out))
+
+            weights.append(jnp.array(w).reshape(neurons_in, neurons_out))
+            biases.append(jnp.array(b))
+
+    return list(zip(weights, biases))
