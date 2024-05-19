@@ -1,6 +1,7 @@
 #include "inference.h"
 #include "malloc.h"
 #include "printf.h"
+#include "timer.h"
 
 MLP_Model* load_mlp_model(void){
     MLP_Model* model = malloc(sizeof(MLP_Model));
@@ -63,6 +64,10 @@ static float gelu(float x){
     return 0.5 * x * (1 + tanh(0.79788456 * (x + 0.044715 * x * x * x)));
 }
 
+static float relu(float x){
+    return (x > 0) ? x : 0;
+}
+
 static float softplus(float x){
     return log(1 + exp(x));
 }
@@ -80,7 +85,8 @@ static float* forward_layer(const MLP_Layer* layer, const float* input){
         for(int j=0; j<layer->input_neurons; j++){
             output[i] += input[j] * layer->weights[j*layer->output_neurons + i]; // weights are stored in row major order: 'C'
         }
-        output[i] = layer->output_neurons == 1 ? softplus(output[i]) : gelu(output[i]);
+        // output[i] = layer->output_neurons == 1 ? softplus(output[i]) : relu(output[i]);
+        output[i] = relu(output[i]);
     }
     return output;
 }
@@ -90,13 +96,22 @@ static float* forward_layer(const MLP_Layer* layer, const float* input){
 // Output is 0 if no gesture, 1 if left swipe, 2 if right swipe
 int forward(MLP_Model* model, float* input){
 
+    int start_time = timer_get_ticks();
+    int layer_times[model->num_layers];
     float* output;
     for(int i=0; i<model->num_layers; i++){
         output = forward_layer(&model->layers[i], input);
+        layer_times[i] = (int)((timer_get_ticks() - start_time) / (24 * 1000));
         free(input);
         input = output;
     }
 
+    for(int i = 0; i < model->num_layers; i++){
+        printf("Layer %d elapsed time %d\n", i, layer_times[i]);
+    }
+
+    printf("\nLower bound: %d\n", (input[0] > 0.005f));
+    printf("\nUpper bound: %d\n", (input[0] < 0.01f));
     int out = round(input[0]);
     free(input);
     

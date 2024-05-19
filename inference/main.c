@@ -3,6 +3,7 @@
 #include "printf.h"
 #include "inference.h"
 #include "malloc.h"
+#include "strings.h"
 
 void main(void)
 {
@@ -11,9 +12,9 @@ void main(void)
 
 
   float* inputs = malloc(2 * 60 * 80 * sizeof(float));
+  inputs = memset(inputs, 10, 2 * 60 * 80 * sizeof(float));
 
   int forward_results = forward(model, inputs);
-  printf("Results: %d\n", forward_results);
 
   free_mlp_model(model);
 }
