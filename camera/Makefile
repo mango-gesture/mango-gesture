@@ -1,5 +1,5 @@
 NAME =  main
-MODULES = printf.c
+MODULES = arducam.c spi.c
 
 all : $(NAME).bin
 
@@ -9,8 +9,8 @@ CFLAGS = $(ARCH) -g -Og -I$$CS107E/include $$warn $$freestanding -fno-omit-frame
 LDFLAGS = -nostdlib -L$$CS107E/lib -T memmap.ld
 LDLIBS = -lmango -lmango_gcc
 
+
 OBJECTS = $(addsuffix .o, $(basename $(MODULES))) 
-OBJS = $(addsuffix .o, $(basename $(NAME)))
 
 %.bin: %.elf
 	riscv64-unknown-elf-objcopy $< -O binary $@
