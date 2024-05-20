@@ -101,6 +101,14 @@ static float* forward_layer(const MLP_Layer* layer, const float* input){
     return output;
 }
 
+int argmax(const float* arr, int size){
+    int max_index = 0;
+    for(int i=1; i<size; i++){
+        max_index = (arr[i] > arr[max_index]) ? i : max_index;
+    }
+    return max_index;
+}
+
 union FloatInt {
     float f;
     int i;
@@ -137,10 +145,10 @@ int forward(MLP_Model* model, float* input){
     }
     union FloatInt fi;
     fi.f = input[0];
-    printf("\nInt representation of the output %d", fi.i);
-    int out = round(input[0]);
-    free(input);
-
+    printf("\nInt representation of the 0'th output %d", fi.i);
     
-    return out;
+    int choice = argmax(input, model->layers[model->num_layers-1].output_neurons);
+    free(input);
+    
+    return choice;
 }
