@@ -11,8 +11,8 @@ void main(void)
   MLP_Model* model = load_mlp_model();
 
 
-  float* inputs = malloc(2 * 60 * 80 * sizeof(float));
-  inputs = memset(inputs, 0, 2 * 60 * 80 * sizeof(float));
+  float* inputs = malloc(2 * 30 * 40 * sizeof(float));
+  inputs = memset(inputs, 0, 2 * 30 * 40 * sizeof(float));
 
   printf("Starting inference\n");
   int forward_results = forward(model, inputs);
