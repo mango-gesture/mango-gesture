@@ -34,7 +34,7 @@ OBJECTS = $(addsuffix .o, $(basename $(MODULES)))
 
 run: $(NAME).bin
 	xfel ddr d1
-	xfel write 0x60000000 ../weights/weights_test.bin
+	xfel write 0x60000000 ../weights/weights_small.bin
 	xfel write 0x40000000 main.bin
 	xfel exec 0x40000000
 
