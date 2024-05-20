@@ -3,7 +3,7 @@ MODULES = inference.c
 
 all : $(NAME).bin
 
-ARCH    = -march=rv64im -mabi=lp64
+ARCH    = -march=rv64imafd -mabi=lp64d
 ASFLAGS = $(ARCH)
 CFLAGS = $(ARCH) -g -Og -I../include $$warn $$freestanding -fno-omit-frame-pointer
 LDFLAGS = -nostdlib -L$$CS107E/lib -T memmap.ld
