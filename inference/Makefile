@@ -3,7 +3,7 @@ MODULES = inference.c
 
 all : $(NAME).bin
 
-ARCH    = -march=rv64imafd -mabi=lp64d
+ARCH    = -march=rv64imf -mabi=lp64
 ASFLAGS = $(ARCH)
 CFLAGS = $(ARCH) -g -Og -I../include $$warn $$freestanding -fno-omit-frame-pointer
 LDFLAGS = -nostdlib -L$$CS107E/lib -T memmap.ld
@@ -34,7 +34,7 @@ OBJECTS = $(addsuffix .o, $(basename $(MODULES)))
 
 run: $(NAME).bin
 	xfel ddr d1
-	xfel write 0x60000000 ../weights/weights_test.bin
+	xfel write 0x60000000 ../weights/weights_medium.bin
 	xfel write 0x40000000 main.bin
 	xfel exec 0x40000000
 

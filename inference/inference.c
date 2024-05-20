@@ -77,12 +77,22 @@ static int round(float x){
 }
 
 static float* forward_layer(const MLP_Layer* layer, const float* input){
+    printf("\nHi4");
     float* output = malloc(layer->output_neurons * sizeof(float));
     if(output == NULL)  printf("Error: Unable to allocate memory to output in forward_layer.");
+    printf("\nHi4.1");
 
     for(int i=0; i<layer->output_neurons; i++){
+        printf("\nHi4.2");
+        printf("\ni: %d\n ptr to layer->biases[i]: %p", i, &(layer->biases[i]));
+        printf("\nptr to output[i]: %p", &(output[i]));
+        output[i] = (float) 0;
+        printf("\nHi4.2.1");
         output[i] = layer->biases[i];
+        printf("\nHi4.2.2");
         for(int j=0; j<layer->input_neurons; j++){
+            printf("\nHi4.3");
+
             output[i] += input[j] * layer->weights[j*layer->output_neurons + i]; // weights are stored in row major order: 'C'
         }
         // output[i] = layer->output_neurons == 1 ? softplus(output[i]) : relu(output[i]);
@@ -91,29 +101,46 @@ static float* forward_layer(const MLP_Layer* layer, const float* input){
     return output;
 }
 
+union FloatInt {
+    float f;
+    int i;
+};
+
 // Runs inference on the model with the given input
 // Input must be a flattened pair of images (2 x c x h x w)
 // Output is 0 if no gesture, 1 if left swipe, 2 if right swipe
 int forward(MLP_Model* model, float* input){
+    printf("\nHi");
 
     int start_time = timer_get_ticks();
     int layer_times[model->num_layers];
     float* output;
+    printf("\nHi2");
+
     for(int i=0; i<model->num_layers; i++){
+        printf("\nHi3");
+
         output = forward_layer(&model->layers[i], input);
+        printf("\nHi3.1");
+
         layer_times[i] = (int)((timer_get_ticks() - start_time) / (24 * 1000));
+        printf("\nHi3.2");
+
         free(input);
+        printf("\nHi3.3");
+
         input = output;
     }
 
     for(int i = 0; i < model->num_layers; i++){
         printf("Layer %d elapsed time %d\n", i, layer_times[i]);
     }
-
-    printf("\nLower bound: %d\n", (input[0] > 0.005f));
-    printf("\nUpper bound: %d\n", (input[0] < 0.01f));
+    union FloatInt fi;
+    fi.f = input[0];
+    printf("\nInt representation of the output %d", fi.i);
     int out = round(input[0]);
     free(input);
+
     
     return out;
 }

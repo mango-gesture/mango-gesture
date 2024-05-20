@@ -12,8 +12,9 @@ void main(void)
 
 
   float* inputs = malloc(2 * 60 * 80 * sizeof(float));
-  inputs = memset(inputs, 10, 2 * 60 * 80 * sizeof(float));
+  inputs = memset(inputs, 0, 2 * 60 * 80 * sizeof(float));
 
+  printf("Starting inference\n");
   int forward_results = forward(model, inputs);
 
   free_mlp_model(model);
