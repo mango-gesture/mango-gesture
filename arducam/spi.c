@@ -9,6 +9,8 @@
 #include "spi.h"
 #include "ccu.h"
 #include "gpio.h"
+#include "gpio_extra.h"
+#include "printf.h"
 #include <stdint.h>
 
 typedef union {
@@ -31,7 +33,9 @@ typedef union {
             uint32_t spol: 1;
             uint32_t ssctl: 1;
             uint32_t chip_sel: 2;
-            uint32_t rest: 25;
+			uint32_t ss_owner: 1;
+			uint32_t ss_level: 1;
+            uint32_t rest: 23;
             uint32_t start_burst: 1;
         } tcr;
         uint32_t reserved1;
@@ -100,7 +104,7 @@ void
 spi_init (void)
 {
     const uint32_t SPI1_CLK_REG = 0x0944;
-    const uint32_t SPI_CLK_REG_VAL = (1 << 31) | (0b01 << 8) | (11);
+    const uint32_t SPI_CLK_REG_VAL = (1 << 31) | (0b11 << 8);
     ccu_write (SPI1_CLK_REG, SPI_CLK_REG_VAL);
     ccu_enable_bus_clk (0x096C, (1 << 1), (1 << 17));
     module->regs.gcr.soft_reset = 1;
@@ -111,24 +115,46 @@ spi_init (void)
     gpio_set_function (GPIO_PD12, GPIO_FN_ALT4); // SPI1_MOSI
     gpio_set_function (GPIO_PD13, GPIO_FN_ALT4); // SPI1_MISO
 
+	gpio_set_pullup(GPIO_PD10);
+
     module->regs.gcr.spi_en = 1;
+	module->regs.gcr.dbi_mode_sel = 0;
     module->regs.gcr.master_mode = 1;
+	module->regs.tcr.cpol = 0;
+	module->regs.tcr.spol = 1;
+	module->regs.tcr.cpha = 0;
+	module->regs.tcr.ss_level = 0;
+    module->regs.tcr.chip_sel = 0;
 }
 
 void
 spi_transfer (unsigned char *tx, unsigned char *rx, int len)
 {
-    module->regs.tcr.chip_sel = 0;
+    // TODO: move this somewhere to only call once
+    // Enable FIFO queue
+    module->regs.fsr.rb_wr = 1;
+    module->regs.fsr.tb_wr = 1; 
+
+    // // Clear rx queue
+	// while (module->regs.fsr.rx_fifo_cnt > 0) {
+    //     int _ = module->regs.rxd[0];
+    // }
+
+    // TODO: figure out correct way to start transmitting
+    gpio_write(GPIO_PD10, 0); // CS pin goes low to start reading
+
+	module->regs.tcr.ss_level = 1;
     module->regs.mbc = len;
     module->regs.mtc = len;
     module->regs.bcc.stc = len;
+
     for (unsigned i = 0; i < len; i++) {
         module->regs.txd[0] = tx[i];
-        while (!module->regs.isr.tx_ready)
+        while (!module->regs.isr.tx_ready) 
             ;
     }
     module->regs.tcr.start_burst = 1;
-    module->regs.isr.transfer_complete = 1; // clear the transfer complete flag
+    module->regs.isr.transfer_complete = 1;
     while (!module->regs.isr.transfer_complete)
       ;
     for (unsigned i = 0; i < len; i++) {
@@ -138,4 +164,6 @@ spi_transfer (unsigned char *tx, unsigned char *rx, int len)
             rx[i] = 0;
         }
     }
+	module->regs.tcr.ss_level = 0;
+    gpio_write(GPIO_PD10, 1);
 }

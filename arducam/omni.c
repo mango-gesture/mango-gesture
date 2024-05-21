@@ -11,19 +11,25 @@
 #include "i2c.h"
 #include "printf.h"
 
+struct i2c_device {
+    unsigned char addr;
+};
+
+static i2c_device_t *dev;
+
 //Sends the commands in order from the blocks defined in omni_cmds.h
 void send_command_block(const char *commands)
 {
-	i2c_set_slave(ARD_I2C_WRITE >> 1);
+	// i2c_device_t *dev = i2c_new(ARD_I2C_WRITE >> 1);
     unsigned reg_addr = 0;
     unsigned reg_val = 0;
-    char data[2];
+    unsigned char data[2];
     while((reg_addr != 0xFF) | (reg_val != 0xFF)) {
 	    reg_addr = commands[0];
 	    reg_val = commands[1];
 	    data[0] = reg_addr;
 	    data[1] = reg_val;
-	    i2c_write(2,data);
+	    block_write(dev->addr, data, 2);
 	    commands+=2;
     }
 }
@@ -31,14 +37,14 @@ void send_command_block(const char *commands)
 //prepares to send a block of commands, as defined in the arducam source code
 int prep_omni_commands(void) 
 {
-    i2c_set_slave(ARD_I2C_WRITE >> 1);
-    char data[2];
+    // i2c_device_t *dev = i2c_new(ARD_I2C_WRITE >> 1); 
+    unsigned char data[2];
     data[0] = 0xFF;
     data[1] = 0x01;
-    i2c_write(2,data);
+    block_write(dev->addr, data, 2);
     data[0] = 0x12;
     data[1] = 0x80;
-    i2c_write(2,data);
+    block_write(dev->addr, data, 2);
     return 1;
 }
 
@@ -46,7 +52,7 @@ int prep_omni_commands(void)
 int write_omni_commands(unsigned mode) 
 {
     const char *start;
-    char data[2];
+    unsigned char data[2];
 
     if (mode == JPG_MODE) {
         start = &OV2640_JPEG_INIT[0][0];
@@ -60,10 +66,10 @@ int write_omni_commands(unsigned mode)
         send_command_block(start);
         data[0] = 0xFF;
         data[1] = 0x01;
-        i2c_write(2,data);
+        block_write(dev->addr, data, 2);
         data[0] = 0x15;
         data[1] = 0x00;
-        i2c_write(2,data);
+        block_write(dev->addr, data, 2);
         start = &OV2640_160x120_JPEG[0][0];
         prep_omni_commands();
         send_command_block(start);
@@ -86,15 +92,16 @@ int write_omni_commands(unsigned mode)
 //sends query commands to test the i2c link
 void omni_init(unsigned mode) 
 {
-    char buf[2];
-    char ret[1];
+    unsigned char buf[2];
+    unsigned char ret[1];
     buf[0] = OV_RA_DLMT;
     buf[1] = 0x01;  //allows for second register control
-    i2c_set_slave(ARD_I2C_WRITE>>1);
+    dev = i2c_new(ARD_I2C_WRITE>>1);
     //check the address to ensure we have the right camera
     buf[0] = OV_PIDH;
-    i2c_write(1,buf);
-    i2c_read(1,ret);
+
+    block_write(dev->addr, buf, 1);
+    block_read(dev->addr, ret, 1);
     if(ret[0] != 0x26) {
     	printf("Reading 0x%x. Expected 0x26.\n", ret[0]);
         return;
@@ -102,8 +109,9 @@ void omni_init(unsigned mode)
 
     //check the second value
     buf[0] = OV_PIDL;
-    i2c_write(1,buf);
-    i2c_read(1,ret);
+    
+    block_write(dev->addr, buf, 1);
+    block_read(dev->addr, ret, 1);
     if(ret[0] != 0x42) {
     	printf("Reading 0x%x. Expected 0x42.\n", ret[0]);
         return;
