@@ -1,9 +1,9 @@
 NAME =  main
-MODULES = inference.c
+MODULES = inference.c inf.asm.s
 
 all : $(NAME).bin
 
-ARCH    = -march=rv64imf -mabi=lp64
+ARCH    = -march=rv64imf_zicsr -mabi=lp64
 ASFLAGS = $(ARCH)
 CFLAGS = $(ARCH) -g -Og -I../include $$warn $$freestanding -fno-omit-frame-pointer
 LDFLAGS = -nostdlib -L$$CS107E/lib -T memmap.ld
@@ -43,8 +43,8 @@ clean:
 
 # Access .c and .s source files within shared mylib directory using vpath
 # https://www.cmcrossroads.com/article/basics-vpath-and-vpath
-vpath %.c ../src
-vpath %.s ../src
+vpath %.c .:../src
+vpath %.s .:../src
 
 .PHONY: all clean run
 .PRECIOUS: %.elf %.o
