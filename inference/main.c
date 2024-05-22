@@ -20,10 +20,16 @@ void main(void)
   fs = get_fs();
   printf("\nfs: %d\n", fs);
 
+<<<<<<< HEAD
 
   float* inputs = malloc(2 * 30 * 40 * sizeof(float));
   inputs = memset(inputs, 1, 2 * 30 * 40 * sizeof(float));
+=======
+  float* inputs = malloc(2 * 30 * 40 * sizeof(float));
+  inputs = memset(inputs, 0, 2 * 30 * 40 * sizeof(float));
+>>>>>>> main
 
+  printf("Starting inference\n");
   int forward_results = forward(model, inputs);
 
   free_mlp_model(model);
