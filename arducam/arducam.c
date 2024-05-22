@@ -5,9 +5,9 @@
  * Completed on: March 14, 2016
  */
 
-// #include "i2c.h"
+#include "i2c.h"
 #include "spi.h"
-// #include "omni.h"
+#include "omni.h"
 #include "arducam.h"
 #include "gl.h"
 #include "printf.h"
@@ -66,8 +66,8 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 	spi_init();
 	printf("spi initialized\n");
 
-	// i2c_init();
-	// printf("i2c initialized\n");
+	i2c_init();
+	printf("i2c initialized\n");
 
 	if (arducam_check_interface()) {
 		printf("connected to camera!\n");
@@ -76,7 +76,7 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 		return;
 	}
 
-	// omni_init(BMP_MODE);
+	omni_init(BMP_MODE); 
 	arducam_clear_fifo();
 	cam.height = h;
 	cam.width = w;
@@ -120,7 +120,7 @@ void print_image(void)
 	    }
 	}
   }
-  printf("COLOR: r: %d, g: %d, b: %d\n", rgb[0],rgb[1],rgb[2]);
+//   printf("COLOR: r: %d, g: %d, b: %d\n", rgb[0],rgb[1],rgb[2]);
   arducam_clear_fifo();
 }
 
@@ -221,7 +221,11 @@ void arducam_clear_fifo()
 
 void arducam_begin_capture()
 {
+	arducam_write(ARD_SENSE_TIMING, arducam_read(ARD_SENSE_TIMING) | (1 << 4)); // enable FIFO
+	// question: correct vsync/hsync polarity? line below sets to 0
+	// arducam_write(ARD_SENSE_TIMING, 1 | (1 << 1) | (1 << 4));
 	arducam_write(ARD_FIFO_CONTROL, FIFO_START);
+	arducam_write(ARD_CAPTURE_CTRL, 2);
 }
 
 unsigned char arducam_chip_version()
@@ -231,7 +235,10 @@ unsigned char arducam_chip_version()
 
 int arducam_capture_done()
 {
-	return (arducam_read(ARD_CAMERA_STATUS) & FIFO_WRITE_DONE);
+	//TODO: check what we're reading
+	int read_val = arducam_read(ARD_CAMERA_STATUS); // Issue: the write fifo done flag not getting set to 1
+	// printf("Status: %x\n", read_val);
+	return (read_val & FIFO_WRITE_DONE);
 }
 
 unsigned char arducam_read_fifo_single()

@@ -65,7 +65,7 @@ void main(void)
 
 	while(1) {
         stream_image();
-        timer_delay_ms(1000);
+        timer_delay_ms(10);
     }
 }
 
