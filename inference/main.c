@@ -21,10 +21,11 @@ void main(void)
   printf("\nfs: %d\n", fs);
 
   float* inputs = malloc(2 * 30 * 40 * sizeof(float));
-  inputs = memset(inputs, 0, 2 * 30 * 40 * sizeof(float));
+  inputs = memset(inputs, 0.0, 2 * 30 * 40 * 4);
 
   printf("Starting inference\n");
   int forward_results = forward(model, inputs);
+  printf("Choice: %d\n", forward_results);
 
   free_mlp_model(model);
 }

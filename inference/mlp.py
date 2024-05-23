@@ -1,7 +1,38 @@
 import jax 
 import jax.numpy as jnp
 from jax import random
+from flax import struct as flax_struct
 import struct
+
+
+@flax_struct.dataclass
+class MLP_config():
+    """ Configuration for the MLP """
+    name: str
+    sizes: list
+    c: int
+    h: int
+    w: int
+    output: int
+
+def save_cfg(cfg, filename):
+    with open(filename, 'w') as file:
+        file.write(f'name: {cfg.name}\n')
+        file.write(f'sizes: {cfg.sizes}\n')
+        file.write(f'c: {cfg.c}\n')
+        file.write(f'h: {cfg.h}\n')
+        file.write(f'w: {cfg.w}\n')
+        file.write(f'output: {cfg.output}\n')
+
+def load_cfg(filename):
+    with open(filename, 'r') as file:
+        name = file.readline().split(': ')[1].strip()
+        sizes = eval(file.readline().split(': ')[1].strip())
+        c = int(file.readline().split(': ')[1].strip())
+        h = int(file.readline().split(': ')[1].strip())
+        w = int(file.readline().split(': ')[1].strip())
+        output = int(file.readline().split(': ')[1].strip())
+    return MLP_config(name, sizes, c, h, w, output)
 
 def initialize_mlp(sizes, key):
     """ Initialize the weights of the MLP """
