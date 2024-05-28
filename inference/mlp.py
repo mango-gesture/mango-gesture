@@ -13,7 +13,8 @@ def initialize_mlp(sizes, key):
         weights.append((random.normal(w_key, (sizes[i-1], sizes[i])) * scale, random.normal(b_key, (sizes[i],)) * scale))
     return weights
 
-def qs_mlp(c, h, w, sizes, key, output=1):
+# output 3 -> left  | blank | right
+def qs_mlp(c, h, w, sizes, key, output=3): 
     """ Helper function to initialize the MLP """
     sizes = [2 * c * h * w] + sizes + [output]
     return initialize_mlp(sizes, key)
@@ -21,9 +22,8 @@ def qs_mlp(c, h, w, sizes, key, output=1):
 def mlp_forward(weights, x):
     """Forward pass of the MLP """
     for w, b in weights:
-        print("SHAPES", x.shape, w.shape, b.shape)
         x = x @ w + b
-        x = jax.nn.gelu(x) * (b.shape[0] > 1) + jax.nn.softplus(x) * (b.shape[0] == 1) # final layer is positive
+        x = jax.nn.relu(x) # relu on last layer doesn't matter
     return x
 
 batch_mlp_forward = jax.vmap(mlp_forward, in_axes=(None, 0), out_axes=0)
