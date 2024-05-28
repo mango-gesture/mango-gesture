@@ -1,5 +1,5 @@
 NAME =  main
-MODULES = arducam.c spi.c omni.c i2c.c
+MODULES = arducam.c spi.c omni.c i2c.c printf.c
 
 all : $(NAME).bin
 

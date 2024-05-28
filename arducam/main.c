@@ -19,12 +19,8 @@
 #include "printf.h"
 
 // size of the image coming in
-#define WIDTH   320
-#define HEIGHT  240
-
-// size of the console, values too large get trimmed later
-#define CONSOLE_ROWS	20
-#define CONSOLE_COLS	50
+#define WIDTH   160
+#define HEIGHT  120
 
 //center the image on the screen? 
 #define CENTERED	1
@@ -57,56 +53,18 @@ void init_peripherals(void) {
 }
 
 /* 
- * comtinuously capture images
+ * continuously capture images
  */
 void main(void)
 {	
 	init_peripherals();
 
+  timer_delay_ms(100);
+
+  printf("Now storing image\n");
+  store_jpeg();
 	while(1) {
         stream_image();
         timer_delay_ms(10);
     }
 }
-
-/*
-                  ."-,.__
-                  `.     `.  ,
-               .--'  .._,'"-' \
-              /    .'         `'
-              `.   /          ,'
-                \  '--.   ,-"'
-                 `"\   |  \
-                    -. \, |
-                     `--\.'      ___.
-                          \     |._, \
-                _.,        `.   <  <\                _
-              ,' /           `, `.   | \            ( `
-           ../, `.            `  |    |\`.           \ \_
-          ,' ,.. |            _._'    ||\|            )  '".
-         / ,'   \ \         ,'.-.`-._,'  |           .  _._`.
-       ,' /      \ \        `' / `--/   | \          / /   ..\
-     .'  /        \ .         |^___^ _ ,'` `        / /     `.`.
-     |  '          ..         `-...-"  |  `-'      / /        . \.
-     | /           |\__           |    |          / /          `. \
-    , /            \   .          |    |         / /             ` `
-   / /          ,.  `._ `-_       |    |  _   ,-' /               ` \
-  / .           \"`_/\ `-_ \_,.  /'    +-' `-'  _,        ..,-.    \`.
- .  '         .-|    ,`   `    '/       \__.---'     ,   .'   '     \ \
- ' /          `._    |     .' /          \..      ,_| |  `.  ,'`     |`
- |'      _.-""\  \    \ _,'  `            \ `.   `.   -.- / |   |     \\
- ||    ,'      `. `.   '       _,...._        \   /   _/ '  |   \     ||
- ||  ,'          `. ;.,.---' ,'       `.   `.. `-'  .   /_ .'    |_   ||
- || '              V      / /           \   | \   ,'   ,' '.    !  `. ||
- ||/            _,-------7 '             \  |  `-'    |         /    `||
-  \|          ,' .-   ,' ||               | .-.        `.      .'     ||
-  `'        ,'    `".'    |               |    `.        '. -.'       `'
-           /      ,'      |               |,'    \-.._,.'/'
-          (      /        .               .       \    .'/
-          `.    |         `.             /         :_,'.'
-           \ `...\   _     ,'-.        .'         /_.-'
-            `-.__ `,  `'   |  _.>----''.  _  __  /
-                 .'        /"'          |  "'   '_
-                /_ ,  , . \             '.  ,  '.__\
-                  /_./"'"\,'              `/ `-.|
-*/

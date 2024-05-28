@@ -3,6 +3,8 @@
  * our github accounts: https://github.com/arjunvb, https://github.com/efritz09
  * 
  * Completed on: March 14, 2016
+ * 
+ * Modified by Nika Zahedi for Arducam: May 28l 2024
  */
 
 #include "i2c.h"
@@ -12,11 +14,12 @@
 #include "gl.h"
 #include "printf.h"
 #include "malloc.h"
+#include "timer.h"
+#include "strings.h"
+
 
 // Image defines
 #define WRITE_bm  (1 << 7)
-#define WIDTH   320
-#define HEIGHT  240
 
 // pixel defines (uses RGB565)
 #define BIT_5   0x1F
@@ -27,11 +30,13 @@
 #define PHA     0
 #define CLKDIV  40
 
+#define JPEG_MAX_LEN 153600
+
 //Image handling functions
-void get_pixels(unsigned char *rgb);
-void print_image(void);
-void store_image(void);
-void draw_image(void);
+void store_jpeg(void);
+void read_jpeg(void);
+void stream_bmp(void);
+void stream_image(void);
 
 //arducam commands
 void arducam_write(unsigned char addr, unsigned char value);
@@ -76,7 +81,7 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 		return;
 	}
 
-	omni_init(BMP_MODE); 
+	omni_init(JPG_MODE); 
 	arducam_clear_fifo();
 	cam.height = h;
 	cam.width = w;
@@ -88,94 +93,104 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 	printf("--Camera ready--\n");
 }
 
-//gets the next pixel value (2 bytes) from the camera and returns a 3 element array
-//of RGB values
-void get_pixels(unsigned char *rgb)
-{
-  unsigned char b1 = arducam_read_fifo_single();
-  unsigned char b2 = arducam_read_fifo_single();
+// Reads a BMP image from the Arducam
+void read_jpeg(){
 
-  unsigned char r = ((b1 >> 3) & BIT_5) * 8; // 5
-  unsigned char b = (b2 & BIT_5) * 8; // 5
-  unsigned char g = (((b2 >> 5) & BIT_3) | ((b1 & BIT_3) << 3)) * 4; //6
-  rgb[0] = r;
-  rgb[1] = g;
-  rgb[2] = b;
-}
+	printf("Starting single-frame jpeg capture...\n");
+	int start_ticks = timer_get_ticks();
 
-//Displays the current camera image to the screen. Does not store the image
-void print_image(void)
-{
-  unsigned char rgb[3];
-  for (int i=cam.y; i < cam.h; i++) {
-  	if(cam.x == 0) {
-	    for (int j=cam.w-1; j >= 0; j--) {
-	      get_pixels(rgb);
-	      gl_draw_pixel(j, i, gl_color(rgb[0],rgb[1],rgb[2]));
-	    }
-	} else {
-		for (int j=cam.w-1; j >= cam.x; j--) {
-	      get_pixels(rgb);
-	      gl_draw_pixel(j, i, gl_color(rgb[0],rgb[1],rgb[2]));
-	    }
+	unsigned char *txd = malloc(JPEG_MAX_LEN + 1);
+    unsigned char *rxd = malloc(JPEG_MAX_LEN + 1);
+
+	if (!txd || !rxd) {
+        free(txd);
+        free(rxd);
+        return;  // Handle memory allocation failure
+    }
+
+	memset(txd, 0, JPEG_MAX_LEN + 1);
+	memset(rxd, 0, JPEG_MAX_LEN + 1);
+
+	txd[0] = ARD_FIFO_BURST_READ;
+
+	int num = spi_transfer_jpeg_burst(txd, rxd, JPEG_MAX_LEN + 1);
+
+	char string_rep [num * 2 + 1]; 
+	for (int i = 0 ; i < num ; i++){
+		string_rep[2 * i] = rxd[i] % 26 + 'a';
+		string_rep[2 * i + 1] = rxd[i] / 26 + 'a';
 	}
-  }
-//   printf("COLOR: r: %d, g: %d, b: %d\n", rgb[0],rgb[1],rgb[2]);
-  arducam_clear_fifo();
-}
-
-// stores the current image
-void store_image(void) {
-	color_t (*im)[cam.width] = (unsigned (*)[cam.width])cam.start;
-	unsigned char rgb[3];
-	for(int i = cam.y; i < cam.h; i++) {
-		for (int j=cam.w-1; j >= cam.x; j--) {
-			get_pixels(rgb);
-			im[j][i] = gl_color(rgb[0],rgb[1],rgb[2]);
-		}
-	}
+	string_rep[num * 2 + 1] = 0;
+	printf("%s", string_rep); // Print to minicom to save to file
+	free(rxd);  // Free receive buffer after processing
+	
 	arducam_clear_fifo();
 }
 
-// draws the current image to the display
-void draw_image(void) {
-	color_t (*im)[cam.width] = (unsigned (*)[cam.width])cam.start;
-	for(int i = cam.y; i < cam.h; i++) {
-		for(int j = cam.x; j < cam.w; j++) {
-			gl_draw_pixel(j,i,im[j][i]);
-		}
-	}
+// Reads a BMP image from the Arducam and displays to the screen
+void stream_bmp(){
+
+	printf("Starting single-frame capture...\n");
+	int start_ticks = timer_get_ticks();
+
+	const int length = cam.width * cam.height * 2;
+	unsigned char txd[1] = {ARD_FIFO_BURST_READ};
+    unsigned char *rxd = malloc(length + 1);
+
+	if (!rxd) {
+        free(rxd);
+        return;  // Handle memory allocation failure
+    }
+
+	memset(rxd, 0, length + 1);
+
+	
+	spi_transfer_burst(txd, rxd, length + 1);
+	
+	
+	// Process the received data
+    for (int i = cam.y; i < cam.h; i++) {
+        for (int j = cam.x; j < cam.w; j++) {
+            int index = ((i - cam.y) * cam.width + (j - cam.x)) * 2;
+            unsigned char b1 = rxd[index + 1]; // the first recieved rxd bit is a dummy bit
+            unsigned char b2 = rxd[index + 2];
+			unsigned char r = ((b1 >> 3) & BIT_5) * 8; // 5
+			unsigned char b = (b2 & BIT_5) * 8; // 5
+			unsigned char g = (((b2 >> 5) & BIT_3) | ((b1 & BIT_3) << 3)) * 4; //6
+			int displayX = (cam.width - 1) - (j - cam.x);
+            gl_draw_pixel(j, i, gl_color(r, g, b));
+        }
+    }
+
+	int elapsed_time_us = (timer_get_ticks() - start_ticks)/TICKS_PER_USEC;
+	printf("Time in us: %d\n", elapsed_time_us);
+	gl_swap_buffer();
+	free(rxd);  // Free receive buffer after processing
+	arducam_clear_fifo();
+}
+
+// Stores the current image using minicom 
+// Storage only supported in JPEG mode
+void store_jpeg(void) {
+	arducam_begin_capture();
+	while(!arducam_capture_done());
+	read_jpeg();
 }
 
 //calls the commands required to stream the images
+// Currently only supports BMP mode
 void stream_image(void) {
+	gl_clear(GL_AMBER);
+	gl_swap_buffer();
+	gl_clear(GL_AMBER);
+	gl_swap_buffer();
 	arducam_begin_capture();
 	printf("streaming...\n");
 
 	while(!arducam_capture_done());
 	printf("capture done!\n");
 
-	print_image();
-	printf("printing\n");
-	gl_swap_buffer();
-	printf("done reading!\n");
-}
-
-//calls the commands to capture and display an image
-void capture_image(void) {
-	arducam_begin_capture();
-	printf("beginning capture...\n");
-
-	while(!arducam_capture_done());
-	printf("capture done!\n");
-
-	store_image();
-	printf("image stored, printing...\n");
-	draw_image();
-	printf("image drawn\n");
-	gl_swap_buffer();
-	draw_image();
-	printf("done reading!\n");
+	stream_bmp();
 }
 
 
@@ -222,10 +237,8 @@ void arducam_clear_fifo()
 void arducam_begin_capture()
 {
 	arducam_write(ARD_SENSE_TIMING, arducam_read(ARD_SENSE_TIMING) | (1 << 4)); // enable FIFO
-	// question: correct vsync/hsync polarity? line below sets to 0
-	// arducam_write(ARD_SENSE_TIMING, 1 | (1 << 1) | (1 << 4));
 	arducam_write(ARD_FIFO_CONTROL, FIFO_START);
-	arducam_write(ARD_CAPTURE_CTRL, 2);
+	arducam_write(ARD_CAPTURE_CTRL, 1);
 }
 
 unsigned char arducam_chip_version()
@@ -235,9 +248,7 @@ unsigned char arducam_chip_version()
 
 int arducam_capture_done()
 {
-	//TODO: check what we're reading
-	int read_val = arducam_read(ARD_CAMERA_STATUS); // Issue: the write fifo done flag not getting set to 1
-	// printf("Status: %x\n", read_val);
+	int read_val = arducam_read(ARD_CAMERA_STATUS);
 	return (read_val & FIFO_WRITE_DONE);
 }
 
