@@ -1,8 +1,8 @@
 import jax
 import jax.numpy as jnp
 from torch.utils.data import DataLoader, random_split
-from dataset import SpotifyGestureDataset, get_dataset
-from mlp import mlp_forward, mlp_serialize_binary, qs_mlp, batch_mlp_forward
+from dataset import SpotifyGestureDataset, get_rgb_dataset, get_jpg_dataset
+from mlp import mlp_forward, mlp_serialize_binary, qs_mlp, batch_mlp_forward, qs_mlp_rgb, qs_mlp_jpeg
 import optax
 import argparse
 import tqdm
@@ -13,11 +13,18 @@ def main(args):
     sizes = list(map(int, args.sizes.split(',')))
     key = jax.random.PRNGKey(0)
 
-    params = qs_mlp(args.c, args.h, args.w, sizes, key, args.classes)
+    if args.modality == 'RGB':
+        params = qs_mlp_rgb(args.c, args.h, args.w, sizes, key, args.classes)
+        dataset: SpotifyGestureDataset = get_rgb_dataset(args.data_path, args.classes, args.c, args.h, args.w)
+    elif args.modality == 'JPEG':
+        params = qs_mlp_jpeg(args.image_size, sizes, key, args.classes)
+        dataset: SpotifyGestureDataset = get_jpg_dataset(args.data_path, args.classes, args.image_size)
+    else:
+        raise ValueError(f"Modality {args.modality} not supported")
+    
     solver = optax.adamw(learning_rate=1e-3)
     opt_state = solver.init(params)
 
-    dataset = get_dataset(args.data_path, args.classes, args.c, args.h, args.w)
     trainset, testset = random_split(dataset, [int(len(dataset) * 0.8), len(dataset) - int(len(dataset) * 0.8)])
     train_loader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
@@ -80,10 +87,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train the model')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--data_path', type=str, default='path/to/dataset')
+    parser.add_argument('--sizes', type=str, default='512,256')
     parser.add_argument('--classes', type=int, default=3)
+    parser.add_argument('-m', '--modality', type=str, default='RGB')
     parser.add_argument('--c', type=int, default=3)
     parser.add_argument('--h', type=int, default=256)
     parser.add_argument('--w', type=int, default=256)
+    parser.add_argument('-i', '--image_size', type=int, default=2048)
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--save_interval', type=int, default=25)
     parser.add_argument('--sanity_interval', type=int, default=25)
