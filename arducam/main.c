@@ -28,11 +28,14 @@
 #define IMAGE_CAPTURE 0
 #define IMAGE_STREAM  1
 
+#define INFRA_SENSOR GPIO_PB2
+
 /* init_peripherals
  * contains all the initialization for the program
  * adjusts the image window and sets the shell parameters
  */
 void init_peripherals(void) {
+	gpio_set_input(INFRA_SENSOR);
     timer_init();
 	timer_delay_ms(100);
 
@@ -59,12 +62,15 @@ void main(void)
 {	
 	init_peripherals();
 
-  timer_delay_ms(100);
+  	// timer_delay_ms(100);
 
-  printf("Now storing image\n");
-  store_jpeg();
-	// while(1) {
-    //     stream_image();
-    //     timer_delay_ms(10);
-    // }
+//   printf("Now storing image\n");
+  	// store_jpeg();
+	while(1) {
+		while (!gpio_read(INFRA_SENSOR)) {/*spin*/}
+        store_jpeg();
+		store_jpeg();
+
+        timer_delay_ms(200);
+    }
 }

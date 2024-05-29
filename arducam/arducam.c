@@ -121,6 +121,8 @@ void read_jpeg(){
 		string_rep[2 * i + 1] = rxd[i] / 26 + 'a';
 	}
 	string_rep[num * 2 + 1] = 0;
+	int elapsed_time_us = (timer_get_ticks() - start_ticks)/TICKS_PER_USEC;
+	printf("Time in ms: %d\n", elapsed_time_us/1000);
 	printf("%s", string_rep); // Print to minicom to save to file
 	free(rxd);  // Free receive buffer after processing
 	

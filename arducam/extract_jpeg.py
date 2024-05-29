@@ -3,6 +3,7 @@
 
 import numpy as np
 
+
 def find_bit_sequence(data, byte1, byte2):
     for i in range (len(data) - 1):
         if data[i] == byte1 and data[i + 1] == byte2:
@@ -29,14 +30,19 @@ with open('capture.txt', 'rt') as file:
 
 # Find the JPEG markers
 try:
-    start_index, end_index = find_jpeg_markers(data)
-    jpeg_data = bytes(data[start_index:end_index])
+    num = 0
+    while (1):
+        start_index, end_index = find_jpeg_markers(data)
+        jpeg_data = bytes(data[start_index:end_index])
 
-    # Save the extracted JPEG data to a new file
-    with open('output.jpg', 'wb') as jpeg_file:
-        jpeg_file.write(jpeg_data)
+        # Save the extracted JPEG data to a new file
+        with open(f'output{num}.jpg', 'wb') as jpeg_file:
+            jpeg_file.write(jpeg_data)
+            
+        data = data[end_index:]
+        num += 1
 
-    print("JPEG file extracted and saved as output.jpg")
+        print("JPEG file extracted and saved as output.jpg")
 except ValueError as e:
     print(e)
 
