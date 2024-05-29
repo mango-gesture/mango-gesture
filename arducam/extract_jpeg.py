@@ -8,7 +8,7 @@ def find_bit_sequence(data, byte1, byte2):
         if data[i] == byte1 and data[i + 1] == byte2:
             return i
 
-    raise ValueError(f"JPEG marker {sequence} not found in the data.")
+    raise ValueError(f"JPEG marker not found in the data.")
 
 
 def find_jpeg_markers(data):

@@ -11,9 +11,9 @@
 #include "timer.h"
 #include "gpio.h"
 #include "spi.h"
-// #include "i2c.h"
+#include "i2c.h"
 #include "arducam.h"
-// #include "omni.h"
+#include "omni.h"
 #include "uart.h"
 #include "gl.h"
 #include "printf.h"
@@ -63,8 +63,8 @@ void main(void)
 
   printf("Now storing image\n");
   store_jpeg();
-	while(1) {
-        stream_image();
-        timer_delay_ms(10);
-    }
+	// while(1) {
+    //     stream_image();
+    //     timer_delay_ms(10);
+    // }
 }

@@ -73,6 +73,7 @@ int write_omni_commands(unsigned mode)
         start = &OV2640_160x120_JPEG[0][0];
         // prep_omni_commands();
         send_command_block(start);
+        // omni_set_bw(); // Switch to bw mode
     } 
     else if(mode == BMP_MODE) {
         start = &OV2640_QVGA[0][0];
