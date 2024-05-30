@@ -55,9 +55,27 @@ void init_peripherals(void) {
 	else arducam_init(WIDTH,HEIGHT,0,0);
 }
 
-/* 
- * continuously capture images
- */
+void store_image_pair(void){
+	// Wait for hand to be in front of cam
+	while (!image_field_has_changed()){ /*spin*/}
+	store_jpeg();
+	printf("\n");
+	store_jpeg();
+
+	// TODO: add separator between each image pair?
+	// Wait for hand to be removed from view
+	while (image_field_has_changed()){ /*spin*/}
+}
+
+// Capture training data and save them to a file using minicom
+void get_training_data(int num_images) {
+	for (int i = 0; i < num_images; i++) {
+		store_image_pair();
+	}
+
+	printf("\nTraining data stored\n");
+}
+
 void main(void)
 {	
 	init_peripherals();
@@ -66,44 +84,5 @@ void main(void)
 	arducam_init_bg();
 	arducam_calibrate();
 
-//   printf("Now storing image\n");
-  	// store_jpeg();
-	// while(1) {
-	// 	// while (!gpio_read(INFRA_SENSOR)) {/*spin*/}
-    //     store_jpeg();
-	// 	store_jpeg();
-
-    //     timer_delay_ms(200);
-    // }
-
-	// for (int i = 0 ; i < 5 ; i++){
-	// 	store_jpeg();
-	// 	store_jpeg();
-
-    //     timer_delay_ms(200);
-	// }
-	while (!image_field_has_changed()){ /*spin*/}
-
-	store_jpeg();
-	printf("\n");
-	store_jpeg();
-
-	printf("\nImage pair stored\n");
-	// int diff = 0;
-	// int len_diff = 0;
-	// int avg_len_diff = 0;
-	// int max_len_dif = 0;
-	// int max_dif = 0;
-	// for (int i = 0 ; i < 1000 ; i++){
-	// 	diff += find_field_diff(&len_diff);
-	// 	avg_len_diff += len_diff;
-	// 	if (len_diff > max_len_dif) max_len_dif = len_diff;
-	// 	if (diff > max_dif) max_dif = diff;
-	// 	if (i % 100 == 0)
-	// 		printf("Finished iter %d\n", i);
-	// }
-	// printf("Average diff: %d\n", diff/1000);
-	// printf("Average len diff: %d\n", len_diff/1000);
-	// printf("Max diff: %d\n", max_dif);
-	// printf("Max len diff: %d\n", max_len_dif);
+	store_image_pair();
 }
