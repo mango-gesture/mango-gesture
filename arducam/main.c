@@ -64,6 +64,7 @@ void main(void)
 
   	timer_delay_ms(100);
 	arducam_init_bg();
+	arducam_calibrate();
 
 //   printf("Now storing image\n");
   	// store_jpeg();

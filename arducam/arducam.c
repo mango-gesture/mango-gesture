@@ -31,7 +31,7 @@
 #define CLKDIV  40
 
 #define JPEG_MAX_LEN 153600
-#define IMAGE_LEN_DIFF_THRESHOLD 100
+static int IMAGE_LEN_DIFF_THRESHOLD;
 // #define IMAGE_DIFF_THRESHOLD 100
 
 //Image handling functions
@@ -41,7 +41,12 @@ void stream_bmp(void);
 void stream_image(void);
 int image_field_has_changed(void);
 int find_field_diff(int *len_diff);
+
+
+//Arducam initialization functions
+void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y);
 void arducam_init_bg(void);
+void arducam_calibrate(void);
 
 //arducam commands
 void arducam_write(unsigned char addr, unsigned char value);
@@ -158,6 +163,36 @@ int image_field_has_changed(void){
 	return 0;
 }
 
+// Sets the correct threshold value to be used for image diff calculations.
+// Note: arducam_init_bg() must be called before this function.
+void arducam_calibrate(void){
+	printf("Beginning calibration...\n");
+	int num_iter = 200; // Number of iterations to average over
+	int len_diff = 0;
+	int max_len_dif = -1;
+	for (int i = 0 ; i < num_iter ; i++){
+		find_field_diff(&len_diff);
+		if (len_diff > max_len_dif) max_len_dif = len_diff;
+		if (i % 100 == 0)
+			printf("Finished calibration iteration %d\n", i);
+	}
+	printf("Test and hold gesture: \n");
+	timer_delay_ms(2000);
+	int positive_ctrl = 0;
+	int min_len_dif_ctrl = JPEG_MAX_LEN;
+	for (int i = 0 ; i < num_iter ; i++){
+		find_field_diff(&positive_ctrl);
+		if (positive_ctrl < min_len_dif_ctrl) min_len_dif_ctrl = positive_ctrl;
+		if (i % 100 == 0)
+			printf("Finished calibration iteration %d\n", i);
+	}
+	printf("Remove hand\n");
+	timer_delay_ms(1000);
+
+	IMAGE_LEN_DIFF_THRESHOLD = (max_len_dif + min_len_dif_ctrl) / 2;
+	printf("Finished calibrating!\n");
+
+}
 
 // Reads a JPEG image from the Arducam into the rxd buffer and returns the number of bytes read
 int read_jpeg(unsigned char *rxd){

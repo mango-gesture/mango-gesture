@@ -52,5 +52,6 @@ void stream_bmp(void);
 int image_field_has_changed(void);
 int find_field_diff(int *len_diff);
 void arducam_init_bg(void);
+void arducam_calibrate(void);
 
 #endif
