@@ -27,7 +27,7 @@ int signed_to_base(char *buf,
                    size_t min_width);
 
 void disassemble(char *buf, unsigned long *instruction);
-#define MAX_OUTPUT_LEN 4096
+#define MAX_OUTPUT_LEN 40960
 
 // The unsigned_to_base method converts the given unsigned long value to a string (in the given base) and writes it to the given buffer.
 // The allowed space in the buffer is determined using the input bufsize value, and the written character count (including the null-temrinator) cannot exceed this bufsize.

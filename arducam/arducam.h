@@ -47,7 +47,10 @@
 void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y);
 void stream_image(void);
 void store_jpeg(void);
-void read_jpeg(void);
+int read_jpeg(unsigned char *rxd);
 void stream_bmp(void);
+int image_field_has_changed(void);
+int find_field_diff(int *len_diff);
+void arducam_init_bg(void);
 
 #endif

@@ -31,12 +31,17 @@
 #define CLKDIV  40
 
 #define JPEG_MAX_LEN 153600
+#define IMAGE_LEN_DIFF_THRESHOLD 100
+// #define IMAGE_DIFF_THRESHOLD 100
 
 //Image handling functions
 void store_jpeg(void);
-void read_jpeg(void);
+int read_jpeg(unsigned char *rxd);
 void stream_bmp(void);
 void stream_image(void);
+int image_field_has_changed(void);
+int find_field_diff(int *len_diff);
+void arducam_init_bg(void);
 
 //arducam commands
 void arducam_write(unsigned char addr, unsigned char value);
@@ -60,6 +65,13 @@ typedef struct {
 	unsigned* start;
 } camera_t;
 
+typedef struct {
+	unsigned char* img;
+	int len;
+} bg_image;
+
+bg_image REF_BG; // reference background image for diff calculations
+
 static volatile camera_t cam;
 
 /* This module not only initializes the camera, it also handles the image
@@ -69,13 +81,13 @@ static volatile camera_t cam;
 //Initializes all the required peripherals, checks the comms, and sets the camera_t values
 void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 	spi_init();
-	printf("spi initialized\n");
+	// printf("spi initialized\n");
 
 	i2c_init();
-	printf("i2c initialized\n");
+	// printf("i2c initialized\n");
 
 	if (arducam_check_interface()) {
-		printf("connected to camera!\n");
+		// printf("connected to camera!\n");
 	} else {
 		printf("SPI interface error\n");
 		return;
@@ -90,22 +102,75 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 	cam.x = x;
 	cam.y = y;
 	cam.start = (unsigned*)malloc(h*w);
-	printf("--Camera ready--\n");
+
 }
 
-// Reads a BMP image from the Arducam
-void read_jpeg(){
+void arducam_init_bg(void){
+	unsigned char* img = malloc(JPEG_MAX_LEN + 1);
+	if (!img) {
+		free(img);
+		printf("BG image Memory allocation failed\n");
+		return;  // Handle memory allocation failure
+	}
+	
+	int num = read_jpeg(img);
+	REF_BG.img = img;
+	REF_BG.len = num;
+}
 
-	printf("Starting single-frame jpeg capture...\n");
-	int start_ticks = timer_get_ticks();
+int find_field_diff(int *len_diff){
+	unsigned char* img = malloc(JPEG_MAX_LEN + 1);
+	if (!img) {
+		free(img);
+		printf("Memory allocation failed\n");
+		return -1;  // Handle memory allocation failure
+	}
+	
+	
+	int num = read_jpeg(img);
 
+	int count = num > REF_BG.len ? REF_BG.len : num;
+	int sum_abs_diff = 0;
+	for (size_t i = 0; i < count; i++)
+	{
+		int diff = img[i] ^ REF_BG.img[i];
+		for (int i = 0 ; i < 8 ; i++){
+			sum_abs_diff += diff & 0b1;
+			diff = diff >> 1;
+		}
+	}
+	// printf("len diff: %d", num2 - num1);
+	*len_diff = num - REF_BG.len;
+	// printf("Sum of abs differences: %d\n", sum_abs_diff);
+	
+
+	free(img);  // Free receive buffers after processing
+
+	return sum_abs_diff;
+}
+
+int image_field_has_changed(void){
+	int len_diff = 0;
+	int abs_dif = find_field_diff(&len_diff);
+	if (len_diff > IMAGE_LEN_DIFF_THRESHOLD){
+		return 1;
+	}
+	return 0;
+}
+
+
+// Reads a JPEG image from the Arducam into the rxd buffer and returns the number of bytes read
+int read_jpeg(unsigned char *rxd){
+	arducam_begin_capture();
+	while(!arducam_capture_done());
+	// printf("Starting single-frame jpeg capture...\n");
 	unsigned char *txd = malloc(JPEG_MAX_LEN + 1);
-    unsigned char *rxd = malloc(JPEG_MAX_LEN + 1);
 
 	if (!txd || !rxd) {
         free(txd);
         free(rxd);
-        return;  // Handle memory allocation failure
+		printf("Memory allocation failed\n");
+        return -1;  // Handle memory allocation failure
     }
 
 	memset(txd, 0, JPEG_MAX_LEN + 1);
@@ -115,18 +180,10 @@ void read_jpeg(){
 
 	int num = spi_transfer_jpeg_burst(txd, rxd, JPEG_MAX_LEN + 1);
 
-	char string_rep [num * 2 + 1]; 
-	for (int i = 0 ; i < num ; i++){
-		string_rep[2 * i] = rxd[i] % 26 + 'a';
-		string_rep[2 * i + 1] = rxd[i] / 26 + 'a';
-	}
-	string_rep[num * 2 + 1] = 0;
-	int elapsed_time_us = (timer_get_ticks() - start_ticks)/TICKS_PER_USEC;
-	printf("Time in ms: %d\n", elapsed_time_us/1000);
-	printf("%s", string_rep); // Print to minicom to save to file
-	free(rxd);  // Free receive buffer after processing
-	
 	arducam_clear_fifo();
+
+	free(txd);  // Free transmit buffer after processing
+	return num;
 }
 
 // Reads a BMP image from the Arducam and displays to the screen
@@ -174,9 +231,22 @@ void stream_bmp(){
 // Stores the current image using minicom 
 // Storage only supported in JPEG mode
 void store_jpeg(void) {
-	arducam_begin_capture();
-	while(!arducam_capture_done());
-	read_jpeg();
+	unsigned char *image_data = malloc(JPEG_MAX_LEN + 1);
+
+	int num = read_jpeg(image_data);
+	char string_rep [num * 2 + 1]; 
+	for (int i = 0 ; i < num ; i++){
+		string_rep[2 * i] = image_data[i] % 26 + 'a';
+		string_rep[2 * i + 1] = image_data[i] / 26 + 'a';
+	}
+	string_rep[num * 2 + 1] = 0;
+	// int elapsed_time_us = (timer_get_ticks() - start_ticks)/TICKS_PER_USEC;
+	// printf("Time in ms: %d\n", elapsed_time_us/1000);
+
+	printf("Size %d: ", num); // Add file size separator
+	printf("%s\n", string_rep); // Print to minicom to save to file
+
+	free(image_data);  // Free receive buffer after storage
 }
 
 //calls the commands required to stream the images

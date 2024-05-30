@@ -13,36 +13,28 @@ def find_bit_sequence(data, byte1, byte2):
 
 
 def find_jpeg_markers(data):
-    # start_marker = [0xFF, 0xD8]
-    # end_marker = [0xFF, 0xD9]
-
     start_index = find_bit_sequence(data, 0xFF, 0xD8)
     end_index = find_bit_sequence(data, 0xFF, 0xD9)
 
     return start_index, end_index + 2
 
 # Read the captured file data
-with open('capture.txt', 'rt') as file:
+with open('capture.txt', 'rt', encoding='utf-8', errors='ignore') as file:
     data_str = file.read()
-    data = []
-    for i in range (0, len(data_str) - 1, 2):
-        data.append(ord(data_str[i]) - ord('a') + (ord(data_str[i + 1]) - ord('a')) * 26)
+    images_as_str = data_str.split('Size ')[1:] # The first element is not an image, so we ignore it
+    images = [[ord(im_str[i]) - ord('a') + (ord(im_str[i + 1]) - ord('a')) * 26 for i in range (0, len(im_str) - 1, 2)] for im_str in images_as_str]
 
 # Find the JPEG markers
 try:
-    num = 0
-    while (1):
+    for num, data in enumerate(images):
         start_index, end_index = find_jpeg_markers(data)
         jpeg_data = bytes(data[start_index:end_index])
 
         # Save the extracted JPEG data to a new file
         with open(f'output{num}.jpg', 'wb') as jpeg_file:
             jpeg_file.write(jpeg_data)
-            
-        data = data[end_index:]
-        num += 1
-
-        print("JPEG file extracted and saved as output.jpg")
+        print(f"JPEG file extracted and saved as output{num}.jpg")
+        
 except ValueError as e:
     print(e)
 

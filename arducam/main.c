@@ -62,15 +62,47 @@ void main(void)
 {	
 	init_peripherals();
 
-  	// timer_delay_ms(100);
+  	timer_delay_ms(100);
+	arducam_init_bg();
 
 //   printf("Now storing image\n");
   	// store_jpeg();
-	while(1) {
-		while (!gpio_read(INFRA_SENSOR)) {/*spin*/}
-        store_jpeg();
-		store_jpeg();
+	// while(1) {
+	// 	// while (!gpio_read(INFRA_SENSOR)) {/*spin*/}
+    //     store_jpeg();
+	// 	store_jpeg();
 
-        timer_delay_ms(200);
-    }
+    //     timer_delay_ms(200);
+    // }
+
+	// for (int i = 0 ; i < 5 ; i++){
+	// 	store_jpeg();
+	// 	store_jpeg();
+
+    //     timer_delay_ms(200);
+	// }
+	while (!image_field_has_changed()){ /*spin*/}
+
+	store_jpeg();
+	printf("\n");
+	store_jpeg();
+
+	printf("\nImage pair stored\n");
+	// int diff = 0;
+	// int len_diff = 0;
+	// int avg_len_diff = 0;
+	// int max_len_dif = 0;
+	// int max_dif = 0;
+	// for (int i = 0 ; i < 1000 ; i++){
+	// 	diff += find_field_diff(&len_diff);
+	// 	avg_len_diff += len_diff;
+	// 	if (len_diff > max_len_dif) max_len_dif = len_diff;
+	// 	if (diff > max_dif) max_dif = diff;
+	// 	if (i % 100 == 0)
+	// 		printf("Finished iter %d\n", i);
+	// }
+	// printf("Average diff: %d\n", diff/1000);
+	// printf("Average len diff: %d\n", len_diff/1000);
+	// printf("Max diff: %d\n", max_dif);
+	// printf("Max len diff: %d\n", max_len_dif);
 }
