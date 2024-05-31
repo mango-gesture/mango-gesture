@@ -1,8 +1,9 @@
 import jax
 import jax.numpy as jnp
 from torch.utils.data import DataLoader, random_split
-from dataset import SpotifyGestureDataset, get_rgb_dataset, get_jpg_dataset
-from mlp import mlp_forward, mlp_serialize_binary, qs_mlp, batch_mlp_forward, qs_mlp_rgb, qs_mlp_jpeg
+from dataset import SpotifyGestureDataset, get_dataset_from_cfg
+from mlp import mlp_forward, mlp_serialize_binary, batch_mlp_forward, get_mlp_from_cfg, load_cfg, MLP_config, \
+    save_cfg
 import optax
 import argparse
 import tqdm
@@ -13,15 +14,18 @@ def main(args):
     sizes = list(map(int, args.sizes.split(',')))
     key = jax.random.PRNGKey(0)
 
-    if args.modality == 'RGB':
-        params = qs_mlp_rgb(args.c, args.h, args.w, sizes, key, args.classes)
-        dataset: SpotifyGestureDataset = get_rgb_dataset(args.data_path, args.classes, args.c, args.h, args.w)
-    elif args.modality == 'JPEG':
-        params = qs_mlp_jpeg(args.image_size, sizes, key, args.classes)
-        dataset: SpotifyGestureDataset = get_jpg_dataset(args.data_path, args.classes, args.image_size)
+    dataset: SpotifyGestureDataset
+    if args.load_path is not None:
+        cfg = load_cfg(args.load_path + '.cfg')
+        with(open(args.load_path + '.pkl', 'rb')) as file:
+            params = pickle.load(file)
     else:
-        raise ValueError(f"Modality {args.modality} not supported")
-    
+        cfg = MLP_config(name = args.name, sizes = sizes, modality = args.modality, c = args.c, h = args.h, w = args.w, image_size = args.image_size, classes = args.classes)
+        params = get_mlp_from_cfg(cfg, key)
+        save_cfg(cfg, f"{args.directory}{args.name}.cfg")
+
+    dataset = get_dataset_from_cfg(args.data_path, cfg)
+
     solver = optax.adamw(learning_rate=1e-3)
     opt_state = solver.init(params)
 
@@ -54,7 +58,7 @@ def train_loop(args, params, train_loader, test_loader, opt_state, solver):
 
         if epoch % args.save_interval == 0:
             mlp_serialize_binary(params, f"{args.name}_{epoch}.bin")
-            with open(f"{args.name}_{epoch}.pkl", 'wb') as file:
+            with open(f"{args.directory}{args.name}_{epoch}.pkl", 'wb') as file:
                 pickle.dump(params, file)
 
         if epoch % args.sanity_interval == 0:
@@ -95,9 +99,11 @@ if __name__ == "__main__":
     parser.add_argument('--w', type=int, default=256)
     parser.add_argument('-i', '--image_size', type=int, default=2048)
     parser.add_argument('--epochs', type=int, default=10)
+    parser.add_arugment('--load_path', type=str, default=None)
     parser.add_argument('--save_interval', type=int, default=25)
     parser.add_argument('--sanity_interval', type=int, default=25)
     parser.add_argument('--name', type=str, default='model')
+    parser.add_argument("-d", "--directory", type=str, default="weights/")
     
     args = parser.parse_args()
     main(args)

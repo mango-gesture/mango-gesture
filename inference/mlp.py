@@ -11,16 +11,17 @@ class MLP_config():
     """ Configuration for the MLP """
     name: str
     sizes: list
+    modality: str
     # for RGB
     c: Optional[int] = None
     h: Optional[int] = None
     w: Optional[int] = None
     # for JPEG, measured in bytes
     image_size: Optional[int] = None
-    output: int
+    classes: int
 
 def save_cfg(cfg, filename):
-    if cfg.c is not None:
+    if cfg.modality == 'RGB':
         with open(filename, 'w') as file:
             file.write(f'name: {cfg.name}\n')
             file.write(f"modality: RGB\n")
@@ -28,14 +29,29 @@ def save_cfg(cfg, filename):
             file.write(f'c: {cfg.c}\n')
             file.write(f'h: {cfg.h}\n')
             file.write(f'w: {cfg.w}\n')
-            file.write(f'output: {cfg.output}\n')
+            file.write(f'classes: {cfg.classes}\n')
     else:
         with open(filename, 'w') as file:
             file.write(f'name: {cfg.name}\n')
             file.write(f"modality: JPEG\n")
             file.write(f'sizes: {cfg.sizes}\n')
             file.write(f'image_size: {cfg.image_size}\n')
-            file.write(f'output: {cfg.output}\n')
+            file.write(f'classes: {cfg.classes}\n')
+
+def read_cfg(filename):
+    with open(filename, 'r') as file:
+        name = file.readline().split(': ')[1].strip()
+        modality = file.readline().split(': ')[1].strip()
+        sizes = file.readline().split(': ')[1].strip()
+        if modality == 'RGB':
+            c = int(file.readline().split(': ')[1].strip())
+            h = int(file.readline().split(': ')[1].strip())
+            w = int(file.readline().split(': ')[1].strip())
+        if modality == 'JPEG':
+            image_size = int(file.readline().split(': ')[1].strip())
+        classes = int(file.readline().split(': ')[1].strip())
+    return MLP_config(name, sizes, c, h, w, image_size, classes)
+        
 
 def load_cfg(filename):
     with open(filename, 'r') as file:
@@ -44,8 +60,8 @@ def load_cfg(filename):
         c = int(file.readline().split(': ')[1].strip())
         h = int(file.readline().split(': ')[1].strip())
         w = int(file.readline().split(': ')[1].strip())
-        output = int(file.readline().split(': ')[1].strip())
-    return MLP_config(name, sizes, c, h, w, output)
+        classes = int(file.readline().split(': ')[1].strip())
+    return MLP_config(name, sizes, c, h, w, classes)
 
 def initialize_mlp(sizes, key):
     """ Initialize the weights of the MLP """
@@ -66,6 +82,12 @@ def qs_mlp_rgb(c, h, w, sizes, key, output=3):
 def qs_mlp_jpeg(image_size, sizes, key, output=3):
     """ Helper function to initialize the MLP for JPEG data """
     return initialize_mlp([image_size * 2] + sizes + [output], key)
+
+def mlp_from_cfg(cfg, key):
+    if cfg.modality == 'RGB':
+        return qs_mlp_rgb(cfg.c, cfg.h, cfg.w, cfg.sizes, key, cfg.classes)
+    else:
+        return qs_mlp_jpeg(cfg.image_size, cfg.sizes, key, cfg.classes)
 
 def mlp_forward(weights, x):
     """Forward pass of the MLP """

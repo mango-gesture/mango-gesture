@@ -3,18 +3,22 @@ from torch.utils.data import Dataset
 import os
 import jax.numpy as jnp
 from PIL import Image
+import jax
+import jax.numpy as jnp
+from mlp import MLP_config
 
 NULL_TOKEN = 0xFF
 class SpotifyGestureDataset(Dataset):
-    def __init__(self, data, labels):
+    def __init__(self, data: jax.Array, labels: jax.Array, classes: int):
         self.data = data # b 2 c h w
         self.labels = labels # b
+        self.classes = classes
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return self.data[idx], self.targets[idx] # 2 c h w, 1
+        return self.data[idx].ravel(), jax.nn.one_hot(self.labels[idx], self.classes) # 2chw, classes
     
 def get_rgb_dataset(data_path, classes, c, h, w):
     """
@@ -39,7 +43,7 @@ def get_rgb_dataset(data_path, classes, c, h, w):
         
     data = jnp.stack(data)
     labels = jnp.array(labels)
-    return SpotifyGestureDataset(data, labels)
+    return SpotifyGestureDataset(data, labels, classes)
 
 def get_jpeg_dataset(data_path, classes, image_size):
     """
@@ -65,4 +69,10 @@ def get_jpeg_dataset(data_path, classes, image_size):
         
     data = jnp.stack(data)
     labels = jnp.array(labels)
-    return SpotifyGestureDataset(data, labels)
+    return SpotifyGestureDataset(data, labels, classes)
+
+def get_dataset_from_cfg(data_path, cfg: MLP_config):
+    if cfg.modality == 'RGB':
+        return get_rgb_dataset(data_path, cfg.classes, cfg.c, cfg.h, cfg.w)
+    else:
+        return get_jpeg_dataset(data_path, cfg.classes, cfg.image_size)
