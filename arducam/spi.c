@@ -4,6 +4,11 @@
  * Author: Yifan Yang <yyang29@stanford.edu>
  *
  * Date: Mar 5, 2024
+ * 
+ * Modified by Nika Zahedi to support reading in burst mode and reading data
+ * of variable length.
+ * 
+ * Date: May 28, 2024
  */
 
 #include "spi.h"
@@ -35,7 +40,9 @@ typedef union {
             uint32_t chip_sel: 2;
 			uint32_t ss_owner: 1;
 			uint32_t ss_level: 1;
-            uint32_t rest: 23;
+            uint32_t rest: 2;
+            uint32_t rapid_write: 1;
+            uint32_t rest2: 20;
             uint32_t start_burst: 1;
         } tcr;
         uint32_t reserved1;
@@ -57,7 +64,10 @@ typedef union {
             uint32_t ss_invalid: 1;
             uint32_t rest: 18;
         } isr;
-        uint32_t fcr;
+        struct {
+            uint32_t rest: 31;
+            uint32_t fifo_reset: 1;
+        } fcr;
         struct {
             uint32_t rx_fifo_cnt: 8;
             uint32_t reserved0: 4;
@@ -76,10 +86,17 @@ typedef union {
         uint32_t mtc;
         struct {
             uint32_t stc: 24;
-            uint32_t rest: 8;
+            uint32_t rest: 6;
+            uint32_t dual_rx_en: 1;
+            uint32_t quad_mode_en: 1;
         } bcc;
         uint32_t reserved4;
-        uint32_t batcr;
+        struct {
+            uint32_t work_mode: 2;
+            uint32_t rest: 23;
+            uint32_t tbc: 1;
+            uint32_t rest2: 6;
+        } batcr;
         uint32_t ba_ccr;
         uint32_t tbr;
         uint32_t rbr;
@@ -125,22 +142,14 @@ spi_init (void)
 	module->regs.tcr.cpha = 0;
 	module->regs.tcr.ss_level = 0;
     module->regs.tcr.chip_sel = 0;
+    // Enable FIFO queue
+    module->regs.fsr.rb_wr = 1;
+    module->regs.fsr.tb_wr = 1; 
 }
 
 void
 spi_transfer (unsigned char *tx, unsigned char *rx, int len)
 {
-    // TODO: move this somewhere to only call once
-    // Enable FIFO queue
-    module->regs.fsr.rb_wr = 1;
-    module->regs.fsr.tb_wr = 1; 
-
-    // // Clear rx queue
-	// while (module->regs.fsr.rx_fifo_cnt > 0) {
-    //     int _ = module->regs.rxd[0];
-    // }
-
-    // TODO: figure out correct way to start transmitting
     gpio_write(GPIO_PD10, 0); // CS pin goes low to start reading
 
 	module->regs.tcr.ss_level = 1;
@@ -148,22 +157,98 @@ spi_transfer (unsigned char *tx, unsigned char *rx, int len)
     module->regs.mtc = len;
     module->regs.bcc.stc = len;
 
-    for (unsigned i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
         module->regs.txd[0] = tx[i];
         while (!module->regs.isr.tx_ready) 
             ;
     }
+
     module->regs.tcr.start_burst = 1;
     module->regs.isr.transfer_complete = 1;
     while (!module->regs.isr.transfer_complete)
       ;
-    for (unsigned i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
         if (module->regs.fsr.rx_fifo_cnt > 0) {
             rx[i] = module->regs.rxd[0];
         } else {
             rx[i] = 0;
         }
     }
+
 	module->regs.tcr.ss_level = 0;
     gpio_write(GPIO_PD10, 1);
+}
+
+void
+spi_transfer_burst (unsigned char *tx, unsigned char *rx, int len)
+{
+    module->regs.mbc = len;
+    module->regs.mtc = 1;
+    module->regs.bcc.stc = len;
+
+    module->regs.txd[0] = tx[0];
+
+    module->regs.tcr.start_burst = 1;
+    while (!module->regs.isr.tx_ready) 
+            ;
+
+    while (module->regs.fsr.rx_fifo_cnt == 0)
+            ;  // Wait for data to be available
+    rx[0] = module->regs.rxd[0];
+    for (int i = 1; i < len ; i ++) {
+        // Check and read the received data as soon as available
+        while (module->regs.fsr.rx_fifo_cnt == 0)
+            ;  // Wait for data to be available
+        rx[i] = module->regs.rxd[0];
+    }
+
+    // Ensure all data is transmitted and received
+    while (!module->regs.isr.transfer_complete)
+        ;
+
+}
+
+// returns the number of read bytes
+unsigned int
+spi_transfer_jpeg_burst (unsigned char *tx, unsigned char *rx, int max_len)
+{
+    const unsigned char JPEG_EOF_MARKER[2] = {0xFF, 0xD9};
+
+
+    gpio_write(GPIO_PD10, 0); // CS pin goes low to start reading
+
+	module->regs.tcr.ss_level = 1;
+    module->regs.mbc = max_len;
+    module->regs.mtc = 1;
+    module->regs.bcc.stc = max_len;
+
+    module->regs.txd[0] = tx[0];
+    while (!module->regs.isr.tx_ready)
+            ;
+    module->regs.tcr.start_burst = 1;
+
+    int i = 0;
+    for (; i < max_len; i++) {
+        // Check and read the received data as soon as available
+        while (module->regs.fsr.rx_fifo_cnt == 0)
+            ;  // Wait for data to be available
+        rx[i] = module->regs.rxd[0];
+
+        if ((i != 0) && (rx[i-1] == JPEG_EOF_MARKER[0]) && (rx[i] == JPEG_EOF_MARKER[1])) {
+            // When JPEG EOF marker found, break
+            break;
+        }
+
+    }
+
+    while (!module->regs.isr.transfer_complete)
+        ;
+    module->regs.gcr.soft_reset = 1;
+    while (module->regs.gcr.soft_reset)
+        ;
+
+	module->regs.tcr.ss_level = 0;
+    gpio_write(GPIO_PD10, 1);
+
+    return (i + 1);
 }
