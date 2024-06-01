@@ -1,14 +1,18 @@
 # Prerequisites
 *.d
-
+test_data/
 arducam/data/
 weights/
-
+wandb/
 # Object files
 *.o
 *.ko
 *.obj
 *.elf
+
+
+*.pyc
+.DS_store
 
 # Linker output
 *.ilk
