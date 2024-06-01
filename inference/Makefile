@@ -1,5 +1,5 @@
 NAME =  main
-MODULES = inference.c inf.asm.s
+MODULES = inference.c inf.asm.s arducam.c printf.c omni.c i2c.c spi.c 
 
 all : $(NAME).bin
 
@@ -34,7 +34,7 @@ OBJECTS = $(addsuffix .o, $(basename $(MODULES)))
 
 run: $(NAME).bin
 	xfel ddr d1
-	xfel write 0x60000000 ../weights/test_mult_outputs.bin
+	xfel write 0x60000000 ../weights/256_256_128_54600.bin
 	xfel write 0x40000000 main.bin
 	xfel exec 0x40000000
 
