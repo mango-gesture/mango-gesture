@@ -1,7 +1,68 @@
 import jax 
 import jax.numpy as jnp
 from jax import random
+from flax import struct as flax_struct
 import struct
+from typing import Optional
+
+
+@flax_struct.dataclass
+class MLP_config():
+    """ Configuration for the MLP """
+    name: str
+    sizes: list
+    modality: str
+    classes: int
+    # for RGB
+    c: Optional[int] = None
+    h: Optional[int] = None
+    w: Optional[int] = None
+    # for JPEG, measured in bytes
+    image_size: Optional[int] = None
+
+
+def save_cfg(cfg, filename):
+    if cfg.modality == 'RGB':
+        with open(filename, 'w') as file:
+            file.write(f'name: {cfg.name}\n')
+            file.write(f"modality: RGB\n")
+            file.write(f'sizes: {cfg.sizes}\n')
+            file.write(f'c: {cfg.c}\n')
+            file.write(f'h: {cfg.h}\n')
+            file.write(f'w: {cfg.w}\n')
+            file.write(f'classes: {cfg.classes}\n')
+    else:
+        with open(filename, 'w') as file:
+            file.write(f'name: {cfg.name}\n')
+            file.write(f"modality: JPEG\n")
+            file.write(f'sizes: {cfg.sizes}\n')
+            file.write(f'image_size: {cfg.image_size}\n')
+            file.write(f'classes: {cfg.classes}\n')
+
+def read_cfg(filename):
+    with open(filename, 'r') as file:
+        name = file.readline().split(': ')[1].strip()
+        modality = file.readline().split(': ')[1].strip()
+        sizes = file.readline().split(': ')[1].strip()
+        if modality == 'RGB':
+            c = int(file.readline().split(': ')[1].strip())
+            h = int(file.readline().split(': ')[1].strip())
+            w = int(file.readline().split(': ')[1].strip())
+        if modality == 'JPEG':
+            image_size = int(file.readline().split(': ')[1].strip())
+        classes = int(file.readline().split(': ')[1].strip())
+    return MLP_config(name, sizes, c, h, w, image_size, classes)
+        
+
+def load_cfg(filename):
+    with open(filename, 'r') as file:
+        name = file.readline().split(': ')[1].strip()
+        sizes = eval(file.readline().split(': ')[1].strip())
+        c = int(file.readline().split(': ')[1].strip())
+        h = int(file.readline().split(': ')[1].strip())
+        w = int(file.readline().split(': ')[1].strip())
+        classes = int(file.readline().split(': ')[1].strip())
+    return MLP_config(name, sizes, c, h, w, classes)
 
 def initialize_mlp(sizes, key):
     """ Initialize the weights of the MLP """
@@ -14,16 +75,26 @@ def initialize_mlp(sizes, key):
     return weights
 
 # output 3 -> left  | blank | right
-def qs_mlp(c, h, w, sizes, key, output=3): 
-    """ Helper function to initialize the MLP """
+def qs_mlp_rgb(c, h, w, sizes, key, output=3): 
+    """ Helper function to initialize the MLP for RGB data """
     sizes = [2 * c * h * w] + sizes + [output]
     return initialize_mlp(sizes, key)
+
+def qs_mlp_jpeg(image_size, sizes, key, output=3):
+    """ Helper function to initialize the MLP for JPEG data """
+    return initialize_mlp([image_size * 2] + sizes + [output], key)
+
+def get_mlp_from_cfg(cfg, key):
+    if cfg.modality == 'RGB':
+        return qs_mlp_rgb(cfg.c, cfg.h, cfg.w, cfg.sizes, key, cfg.classes)
+    else:
+        return qs_mlp_jpeg(cfg.image_size, cfg.sizes, key, cfg.classes)
 
 def mlp_forward(weights, x):
     """Forward pass of the MLP """
     for w, b in weights:
         x = x @ w + b
-        x = jax.nn.relu(x) # relu on last layer doesn't matter
+        x = jax.nn.relu(x) # relu on last layer is fine
     return x
 
 batch_mlp_forward = jax.vmap(mlp_forward, in_axes=(None, 0), out_axes=0)
@@ -51,7 +122,7 @@ def mlp_serialize_binary(params, filename):
             file.write(w.tobytes())
             file.write(b.tobytes())
 
-# NOT WORKING
+# NOT WORKING, just use the pickle
 def mlp_deserialize_binary(filename):
     with open(filename, 'rb') as file:
         # Read the number of layers
