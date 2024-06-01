@@ -3,6 +3,8 @@
  * our github accounts: https://github.com/arjunvb, https://github.com/efritz09
  * 
  * Completed on: March 14, 2016
+ * 
+ * Modified by Nika Zahedi for Mango Pi on: May 28, 2024
  */
 
 #include "omni.h"
@@ -20,7 +22,6 @@ static i2c_device_t *dev;
 //Sends the commands in order from the blocks defined in omni_cmds.h
 void send_command_block(const char *commands)
 {
-	// i2c_device_t *dev = i2c_new(ARD_I2C_WRITE >> 1);
     unsigned reg_addr = 0;
     unsigned reg_val = 0;
     unsigned char data[2];
@@ -37,7 +38,6 @@ void send_command_block(const char *commands)
 //prepares to send a block of commands, as defined in the arducam source code
 int prep_omni_commands(void) 
 {
-    // i2c_device_t *dev = i2c_new(ARD_I2C_WRITE >> 1); 
     unsigned char data[2];
     data[0] = 0xFF;
     data[1] = 0x01;
@@ -59,10 +59,10 @@ int write_omni_commands(unsigned mode)
         prep_omni_commands();
         send_command_block(start);
         start = &OV2640_YUV422[0][0];
-        prep_omni_commands();
+        // prep_omni_commands();
         send_command_block(start);
         start = &OV2640_JPEG[0][0];
-        prep_omni_commands();
+        // prep_omni_commands();
         send_command_block(start);
         data[0] = 0xFF;
         data[1] = 0x01;
@@ -71,8 +71,9 @@ int write_omni_commands(unsigned mode)
         data[1] = 0x00;
         block_write(dev->addr, data, 2);
         start = &OV2640_160x120_JPEG[0][0];
-        prep_omni_commands();
+        // prep_omni_commands();
         send_command_block(start);
+        // omni_set_bw(); // Switch to bw mode
     } 
     else if(mode == BMP_MODE) {
         start = &OV2640_QVGA[0][0];
