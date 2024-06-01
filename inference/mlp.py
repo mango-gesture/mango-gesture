@@ -12,13 +12,14 @@ class MLP_config():
     name: str
     sizes: list
     modality: str
+    classes: int
     # for RGB
     c: Optional[int] = None
     h: Optional[int] = None
     w: Optional[int] = None
     # for JPEG, measured in bytes
     image_size: Optional[int] = None
-    classes: int
+
 
 def save_cfg(cfg, filename):
     if cfg.modality == 'RGB':
@@ -83,7 +84,7 @@ def qs_mlp_jpeg(image_size, sizes, key, output=3):
     """ Helper function to initialize the MLP for JPEG data """
     return initialize_mlp([image_size * 2] + sizes + [output], key)
 
-def mlp_from_cfg(cfg, key):
+def get_mlp_from_cfg(cfg, key):
     if cfg.modality == 'RGB':
         return qs_mlp_rgb(cfg.c, cfg.h, cfg.w, cfg.sizes, key, cfg.classes)
     else:
