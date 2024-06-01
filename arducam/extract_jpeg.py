@@ -3,6 +3,7 @@
 
 import numpy as np
 
+data_dir = 'data/null_class'
 
 def find_bit_sequence(data, byte1, byte2):
     for i in range (len(data) - 1):
@@ -26,15 +27,20 @@ with open('capture.txt', 'rt', encoding='utf-8', errors='ignore') as file:
 
 # Find the JPEG markers
 try:
+    max_size = -1
     for num, data in enumerate(images):
         start_index, end_index = find_jpeg_markers(data)
         jpeg_data = bytes(data[start_index:end_index])
 
+        max_size = max(max_size, len(jpeg_data))
         # Save the extracted JPEG data to a new file
-        with open(f'output{num}.jpg', 'wb') as jpeg_file:
+        with open(f'{data_dir}/output{num}.jpg', 'wb') as jpeg_file:
             jpeg_file.write(jpeg_data)
         print(f"JPEG file extracted and saved as output{num}.jpg")
         
+    with open(f'{data_dir}/log.txt', 'wt') as data_log:
+        data_log.write(f"Max size: {max_size}")
+
 except ValueError as e:
     print(e)
 

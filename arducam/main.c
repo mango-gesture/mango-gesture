@@ -68,8 +68,8 @@ void store_image_pair(void){
 }
 
 // Capture training data and save them to a file using minicom
-void get_training_data(int num_images) {
-	for (int i = 0; i < num_images; i++) {
+void get_training_data(int num_image_pairs) {
+	for (int i = 0; i < num_image_pairs; i++) {
 		store_image_pair();
 	}
 
@@ -84,5 +84,7 @@ void main(void)
 	arducam_init_bg();
 	arducam_calibrate();
 
-	store_image_pair();
+	get_training_data(1000);
+
+	// store_image_pair();
 }
