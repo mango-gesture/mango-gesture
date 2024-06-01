@@ -187,7 +187,7 @@ void arducam_calibrate(void){
 			printf("Finished calibration iteration %d\n", i);
 	}
 	printf("Remove hand\n");
-	timer_delay_ms(1000);
+	timer_delay_ms(1800);
 
 	IMAGE_LEN_DIFF_THRESHOLD = (max_len_dif + min_len_dif_ctrl) / 2;
 	printf("Finished calibrating!\n");
