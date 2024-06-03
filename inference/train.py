@@ -73,6 +73,21 @@ def train_loop(args, params, train_loader, test_loader, opt_state, solver, key):
                 pbar.set_postfix(loss=test_loss.item())
 
             pbar.close()
+        
+        if epoch % args.val_accuracy_interval == 0:
+            correct = 0
+            total = 0
+            for inputs, labels in test_loader:
+                inputs = jnp.array(inputs)
+                labels = jnp.array(labels)
+                labels = jax.nn.one_hot(labels, args.classes)
+
+                logits = batch_mlp_forward(params, inputs)
+                pred = jnp.argmax(logits, axis=1)
+                correct += jnp.sum(pred == jnp.argmax(labels, axis=1))
+                total += inputs.shape[0]
+            val_accuracy = correct / total
+            logger_dict['val_accuracy'] = val_accuracy
 
         if epoch % args.save_interval == 0:
             mlp_serialize_binary(params, f"{args.directory}{args.name}_{epoch}.bin")
@@ -127,6 +142,7 @@ if __name__ == "__main__":
     parser.add_argument('--load_path', type=str, default=None)
     parser.add_argument('--save_interval', type=int, default=50)
     parser.add_argument('--sanity_interval', type=int, default=5)
+    parser.add_argument('--val_accuracy_interval', type=int, default=5)
     parser.add_argument('--name', type=str, default='big_test')
     parser.add_argument("-d", "--directory", type=str, default="../weights/")
     
