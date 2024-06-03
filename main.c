@@ -48,7 +48,7 @@ void init_peripherals(void) {
 
     timer_delay_ms(100);
 	arducam_init_bg();
-    // arducam_calibrate();
+    arducam_calibrate();
 }
 
 void normalize_image(float* inputs, unsigned char* img, int len) {
@@ -69,8 +69,10 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
 
     // Wait for hand to be in front of cam
     while (!image_field_has_changed()){ /*spin*/}
-
+    int start_time = timer_get_ticks();
     int len1 = read_jpeg(img1);
+    int first_image_time = timer_get_ticks();
+    printf("First image time: %d (ms)\n", (int)((first_image_time - start_time)/(24 * 1000)));
     if (len1 == -1) {
         return -1;
     }
@@ -88,20 +90,11 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
     printf("!\n");
 
     int len2 = read_jpeg(img2);
+    int second_image_time = timer_get_ticks();
+    printf("Second image time: %d (ms)\n", (int)((second_image_time - first_image_time)/(24 * 1000)));
     if (len2 == -1) {
         return -1;
     }
-
-    char string_rep2 [len2 * 2 + 1]; 
-	for (int i = 0 ; i < len2 ; i++){
-		string_rep2[2 * i] = img2[i] % 26 + 'a';
-		string_rep2[2 * i + 1] = img2[i] / 26 + 'a';
-	}
-	string_rep2[len2 * 2 + 1] = 0;
-
-    printf("!Size %d: ", len2); // Add file size separator
-	printf("%s", string_rep2); // Print to minicom to save to file
-    printf("!\n");
     // -------------- End --------------
 
     if (len1 > IMG_LEN_BYTES || len2 > IMG_LEN_BYTES) {
@@ -117,14 +110,21 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
 
     append_null_token(inputs, len1 - 1);
     append_null_token(inputs + IMG_LEN_BYTES, len2 - 1);
-     
-    // Wait for hand to be removed from view
-    while (image_field_has_changed()){ /*spin*/}
+    int preprocessing_time = timer_get_ticks();
+    printf("Preprocessing time: %d (ms)\n", (int)((preprocessing_time - second_image_time)/(24 * 1000)));
+
 
     // printf("Starting inference\n");
     int forward_results = forward(model, inputs);
     printf("Choice: %d\n", forward_results);
+    int end_time = timer_get_ticks();
+    printf("Latency: %d (ms)\n", (int)((end_time - start_time)/(24 * 1000)));
+
+    printf("Latency - preprocessing: %d (ms)\n", (int)((end_time - preprocessing_time)/(24 * 1000)));
     
+    // Wait for hand to be removed from view
+    while (image_field_has_changed()){ /*spin*/}
+
     return forward_results;
 }
 

@@ -31,7 +31,7 @@
 #define CLKDIV  40
 
 #define JPEG_MAX_LEN 153600
-static int IMAGE_LEN_DIFF_THRESHOLD = 100;
+static int IMAGE_LEN_DIFF_THRESHOLD;
 // #define IMAGE_DIFF_THRESHOLD 100
 
 //Image handling functions
