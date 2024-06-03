@@ -1,6 +1,7 @@
 # Prerequisites
 *.d
 test_data/
+arducam/data/
 weights/
 wandb/
 # Object files

@@ -3,6 +3,8 @@
 
 /* This code brought to you by the rag tag duo of Arjun and Eric! Visit us at
  * our github accounts: https://github.com/arjunvb, https://github.com/efritz09
+ *
+ * Modified by Nika Zahedi on May 28, 2024 for Mango Pi
  */
 
 //arducam SPI register addresses
@@ -44,6 +46,12 @@
 // functions
 void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y);
 void stream_image(void);
-void capture_image(void);
+void store_jpeg(void);
+int read_jpeg(unsigned char *rxd);
+void stream_bmp(void);
+int image_field_has_changed(void);
+int find_field_diff(int *len_diff);
+void arducam_init_bg(void);
+void arducam_calibrate(void);
 
 #endif

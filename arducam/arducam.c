@@ -167,7 +167,7 @@ int image_field_has_changed(void){
 // Note: arducam_init_bg() must be called before this function.
 void arducam_calibrate(void){
 	printf("Beginning calibration...\n");
-	int num_iter = 200; // Number of iterations to average over
+	int num_iter = 100; // Number of iterations to average over
 	int len_diff = 0;
 	int max_len_dif = -1;
 	for (int i = 0 ; i < num_iter ; i++){

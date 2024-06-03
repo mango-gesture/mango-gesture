@@ -1,11 +1,10 @@
 NAME =  main
-MODULES = inference.c inf.asm.s arducam.c printf.c omni.c i2c.c spi.c 
-
+MODULES = inference.c inf.asm.s arducam.c printf.c omni.c i2c.c spi.c
 all : $(NAME).bin
 
 ARCH    = -march=rv64imf_zicsr -mabi=lp64
 ASFLAGS = $(ARCH)
-CFLAGS = $(ARCH) -g -Og -I../include $$warn $$freestanding -fno-omit-frame-pointer
+CFLAGS = $(ARCH) -g -Og -I include $$warn $$freestanding -fno-omit-frame-pointer
 LDFLAGS = -nostdlib -L$$CS107E/lib -T memmap.ld
 LDLIBS = -lmango -lmango_gcc
 
@@ -34,7 +33,7 @@ OBJECTS = $(addsuffix .o, $(basename $(MODULES)))
 
 run: $(NAME).bin
 	xfel ddr d1
-	xfel write 0x60000000 ../weights/256_256_128_54600.bin
+	xfel write 0x60000000 weights/new_test_256.bin
 	xfel write 0x40000000 main.bin
 	xfel exec 0x40000000
 
@@ -43,8 +42,11 @@ clean:
 
 # Access .c and .s source files within shared mylib directory using vpath
 # https://www.cmcrossroads.com/article/basics-vpath-and-vpath
-vpath %.c .:../src
-vpath %.s .:../src
+vpath %.c .:arducam
+vpath %.c .:src
+vpath %.c .:inference
+vpath %.s .:inference
+vpath %.h .:include
 
 .PHONY: all clean run
 .PRECIOUS: %.elf %.o
