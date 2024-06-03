@@ -16,7 +16,6 @@ wandb/
 *.ko
 *.obj
 *.elf
-*.bin
 
 
 *.pyc
