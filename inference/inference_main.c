@@ -20,8 +20,8 @@ void main(void)
   fs = get_fs();
   printf("\nfs: %d\n", fs);
 
-  float* inputs = malloc(2 * 30 * 40 * sizeof(float));
-  inputs = memset(inputs, 0.0, 2 * 30 * 40 * 4);
+  float* inputs = malloc(4402 * sizeof(float));
+  inputs = memset(inputs, 0.0, 4402 * sizeof(float));
 
   printf("Starting inference\n");
   int forward_results = forward(model, inputs);

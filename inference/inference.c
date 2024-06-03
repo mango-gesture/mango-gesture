@@ -120,6 +120,7 @@ int forward(MLP_Model* model, float* input){
 
         layer_times[i] = (int)((timer_get_ticks() - start_time) / (24 * 1000));
 
+        // printf("Freeing input %d\n", i);
         free(input);
 
         input = output;
@@ -128,10 +129,15 @@ int forward(MLP_Model* model, float* input){
     for(int i = 0; i < model->num_layers; i++){
         printf("Layer %d elapsed time %d\n", i, layer_times[i]);
     }
-    void* void_out = &input[2];
-    printf("\nInt representation of the 2'nd output %d", *(unsigned int*)void_out);
+    void* void_out = &input[0];
+    printf("\nInt representation of the first output %d\n", *(unsigned int*)void_out);
+
+    void* void_out2 = &input[1];
+    printf("Int representation of the second output %d\n", *(unsigned int*)void_out2);
+
     
     int choice = argmax(input, model->layers[model->num_layers-1].output_neurons);
+    // printf("Freeing last input\n");
     free(input);
     
     return choice;

@@ -1,5 +1,5 @@
-NAME =  main
-MODULES = inference.c inf.asm.s arducam.c printf.c omni.c i2c.c spi.c 
+NAME =  inference_main
+MODULES = inference.c inf.asm.s 
 
 all : $(NAME).bin
 
@@ -34,8 +34,8 @@ OBJECTS = $(addsuffix .o, $(basename $(MODULES)))
 
 run: $(NAME).bin
 	xfel ddr d1
-	xfel write 0x60000000 ../weights/256_256_128_54600.bin
-	xfel write 0x40000000 main.bin
+	xfel write 0x60000000 ../weights/new_test_256.bin
+	xfel write 0x40000000 inference_main.bin
 	xfel exec 0x40000000
 
 clean:
@@ -44,7 +44,7 @@ clean:
 # Access .c and .s source files within shared mylib directory using vpath
 # https://www.cmcrossroads.com/article/basics-vpath-and-vpath
 vpath %.c .:../src
-vpath %.s .:../src
+vpath %.h .:../include
 
 .PHONY: all clean run
 .PRECIOUS: %.elf %.o

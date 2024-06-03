@@ -1,5 +1,5 @@
 NAME =  main
-MODULES = inference.c inf.asm.s arducam.c printf.c omni.c i2c.c spi.c
+MODULES = inference.c inf.asm.s arducam.c printf.c omni.c i2c.c spi.c malloc.c
 all : $(NAME).bin
 
 ARCH    = -march=rv64imf_zicsr -mabi=lp64
@@ -33,7 +33,7 @@ OBJECTS = $(addsuffix .o, $(basename $(MODULES)))
 
 run: $(NAME).bin
 	xfel ddr d1
-	xfel write 0x60000000 weights/new_test_256.bin
+	xfel write 0x60000000 weights/demo_weights_checkpoint.bin
 	xfel write 0x40000000 main.bin
 	xfel exec 0x40000000
 

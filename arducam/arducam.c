@@ -31,7 +31,7 @@
 #define CLKDIV  40
 
 #define JPEG_MAX_LEN 153600
-static int IMAGE_LEN_DIFF_THRESHOLD;
+static int IMAGE_LEN_DIFF_THRESHOLD = 100;
 // #define IMAGE_DIFF_THRESHOLD 100
 
 //Image handling functions
@@ -106,7 +106,7 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 	cam.w = x+w;
 	cam.x = x;
 	cam.y = y;
-	cam.start = (unsigned*)malloc(h*w);
+	// cam.start = (unsigned*)malloc(h*w);
 
 }
 
@@ -124,30 +124,28 @@ void arducam_init_bg(void){
 }
 
 int find_field_diff(int *len_diff){
-	unsigned char* img = malloc(JPEG_MAX_LEN + 1);
+	unsigned char* img = (unsigned char *)malloc(JPEG_MAX_LEN + 1);
 	if (!img) {
 		free(img);
 		printf("Memory allocation failed\n");
 		return -1;  // Handle memory allocation failure
 	}
 	
-	
 	int num = read_jpeg(img);
 
-	int count = num > REF_BG.len ? REF_BG.len : num;
+	// int count = num > REF_BG.len ? REF_BG.len : num;
 	int sum_abs_diff = 0;
-	for (size_t i = 0; i < count; i++)
-	{
-		int diff = img[i] ^ REF_BG.img[i];
-		for (int i = 0 ; i < 8 ; i++){
-			sum_abs_diff += diff & 0b1;
-			diff = diff >> 1;
-		}
-	}
+	// for (size_t i = 0; i < count; i++)
+	// {
+	// 	int diff = img[i] ^ REF_BG.img[i];
+	// 	for (int i = 0 ; i < 8 ; i++){
+	// 		sum_abs_diff += diff & 0b1;
+	// 		diff = diff >> 1;
+	// 	}
+	// }
 	// printf("len diff: %d", num2 - num1);
 	*len_diff = num - REF_BG.len;
-	// printf("Sum of abs differences: %d\n", sum_abs_diff);
-	
+	// printf("Sum of abs differences: %d\n", sum_abs_diff);	
 
 	free(img);  // Free receive buffers after processing
 
@@ -201,15 +199,15 @@ int read_jpeg(unsigned char *rxd){
 	// printf("Starting single-frame jpeg capture...\n");
 	unsigned char *txd = malloc(JPEG_MAX_LEN + 1);
 
-	if (!txd || !rxd) {
+	if (!txd) {
         free(txd);
-        free(rxd);
-		printf("Memory allocation failed\n");
+		printf("SPI txd memory allocation failed\n");
         return -1;  // Handle memory allocation failure
     }
 
 	memset(txd, 0, JPEG_MAX_LEN + 1);
-	memset(rxd, 0, JPEG_MAX_LEN + 1);
+	rxd[0] = 0;
+	// memset(rxd, 0, JPEG_MAX_LEN + 1);
 
 	txd[0] = ARD_FIFO_BURST_READ;
 
@@ -256,8 +254,8 @@ void stream_bmp(){
         }
     }
 
-	int elapsed_time_us = (timer_get_ticks() - start_ticks)/TICKS_PER_USEC;
-	printf("Time in us: %d\n", elapsed_time_us);
+	// int elapsed_time_us = (timer_get_ticks() - start_ticks)/TICKS_PER_USEC;
+	// printf("Time in us: %d\n", elapsed_time_us);
 	gl_swap_buffer();
 	free(rxd);  // Free receive buffer after processing
 	arducam_clear_fifo();
@@ -287,17 +285,20 @@ void store_jpeg(void) {
 //calls the commands required to stream the images
 // Currently only supports BMP mode
 void stream_image(void) {
-	gl_clear(GL_AMBER);
-	gl_swap_buffer();
-	gl_clear(GL_AMBER);
-	gl_swap_buffer();
-	arducam_begin_capture();
+
 	printf("streaming...\n");
+	gl_clear(GL_AMBER);
+	gl_swap_buffer();
+	gl_clear(GL_AMBER);
+	gl_swap_buffer();
 
-	while(!arducam_capture_done());
-	printf("capture done!\n");
+	while(1){
 
-	stream_bmp();
+		arducam_begin_capture();
+		while(!arducam_capture_done());
+
+		stream_bmp();
+    }
 }
 
 
