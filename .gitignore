@@ -1,7 +1,14 @@
 # Prerequisites
 *.d
+.vscode/
 test_data/
-arducam/data/
+arducam/aaditya_data/
+arducam/nika_training_data/
+arducam/bg.jpg
+arducam/capture_left.txt
+arducam/capture_right.txt
+arducam/log_left.txt
+arducam/log_right.txt
 weights/
 wandb/
 # Object files
@@ -9,6 +16,7 @@ wandb/
 *.ko
 *.obj
 *.elf
+*.bin
 
 
 *.pyc
