@@ -83,9 +83,9 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
 	}
 	string_rep[len1 * 2 + 1] = 0;
     
-	printf("Size %d: ", len1); // Add file size separator
-	printf("%s\n", string_rep); // Print to minicom to save to file
-    printf("\n");
+	printf("!Size %d: ", len1); // Add file size separator
+	printf("%s", string_rep); // Print to minicom to save to file
+    printf("!\n");
 
     int len2 = read_jpeg(img2);
     if (len2 == -1) {
@@ -99,8 +99,9 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
 	}
 	string_rep2[len2 * 2 + 1] = 0;
 
-    printf("Size %d: ", len2); // Add file size separator
-	printf("%s\n", string_rep2); // Print to minicom to save to file
+    printf("!Size %d: ", len2); // Add file size separator
+	printf("%s", string_rep2); // Print to minicom to save to file
+    printf("!\n");
     // -------------- End --------------
 
     if (len1 > IMG_LEN_BYTES || len2 > IMG_LEN_BYTES) {
@@ -120,7 +121,7 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
     // Wait for hand to be removed from view
     while (image_field_has_changed()){ /*spin*/}
 
-    printf("Starting inference\n");
+    // printf("Starting inference\n");
     int forward_results = forward(model, inputs);
     printf("Choice: %d\n", forward_results);
     
@@ -151,11 +152,8 @@ void run_trackpad(void) {
         get_next_action(inputs, img1, img2);
     }
 
-    printf("Freeing 1st img\n");
     free(img1);
-    printf("Freeing 2nd img\n");
     free(img2);
-    printf("Freed\n");
     free_mlp_model(model);
 }
 
