@@ -40,6 +40,9 @@ def save_cfg(cfg, filename):
             file.write(f'classes: {cfg.classes}\n')
 
 def read_cfg(filename):
+    c, h, w = None, None, None
+    image_size = None
+    
     with open(filename, 'r') as file:
         name = file.readline().split(': ')[1].strip()
         modality = file.readline().split(': ')[1].strip()
@@ -51,18 +54,12 @@ def read_cfg(filename):
         if modality == 'JPEG':
             image_size = int(file.readline().split(': ')[1].strip())
         classes = int(file.readline().split(': ')[1].strip())
-    return MLP_config(name, sizes, c, h, w, image_size, classes)
+    if modality == 'RGB':
+        return MLP_config(name, eval(sizes), modality, classes, c, h, w)
+    else:
+        return MLP_config(name, eval(sizes), modality, classes, image_size=image_size)
         
 
-def load_cfg(filename):
-    with open(filename, 'r') as file:
-        name = file.readline().split(': ')[1].strip()
-        sizes = eval(file.readline().split(': ')[1].strip())
-        c = int(file.readline().split(': ')[1].strip())
-        h = int(file.readline().split(': ')[1].strip())
-        w = int(file.readline().split(': ')[1].strip())
-        classes = int(file.readline().split(': ')[1].strip())
-    return MLP_config(name, sizes, c, h, w, classes)
 
 def initialize_mlp(sizes, key):
     """ Initialize the weights of the MLP """

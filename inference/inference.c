@@ -64,16 +64,16 @@ static float gelu(float x){
     return 0.5 * x * (1 + tanh(0.79788456 * (x + 0.044715 * x * x * x)));
 }
 
-static float relu(float x){
-    return (x > 0) ? x : 0;
-}
-
 static float softplus(float x){
     return log(1 + exp(x));
 }
 
 static int round(float x){
     return (int)(x + 0.5);
+}
+
+static float relu(float x){
+    return (x > 0) ? x : 0;
 }
 
 static float* forward_layer(const MLP_Layer* layer, const float* input){
