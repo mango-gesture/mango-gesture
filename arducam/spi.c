@@ -147,6 +147,7 @@ spi_init (void)
     module->regs.fsr.tb_wr = 1; 
 }
 
+// Single byte transfer
 void
 spi_transfer (unsigned char *tx, unsigned char *rx, int len)
 {
@@ -179,6 +180,7 @@ spi_transfer (unsigned char *tx, unsigned char *rx, int len)
     gpio_write(GPIO_PD10, 1);
 }
 
+// Burst transfer of raw image pixel data
 void
 spi_transfer_burst (unsigned char *tx, unsigned char *rx, int len)
 {
@@ -208,7 +210,8 @@ spi_transfer_burst (unsigned char *tx, unsigned char *rx, int len)
 
 }
 
-// returns the number of read bytes
+// Burst transfer of JPEG image data, which has unspecified length
+// Returns the number of read bytes
 unsigned int
 spi_transfer_jpeg_burst (unsigned char *tx, unsigned char *rx, int max_len)
 {

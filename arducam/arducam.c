@@ -1,10 +1,13 @@
 /* 
- * This code brought to you by the rag tag duo of Arjun and Eric! Visit us at
- * our github accounts: https://github.com/arjunvb, https://github.com/efritz09
+ * This code is adapted from the Raspberry Pi-Arducam interface
+ * developed by Arjun Balasingam and Eric Fritz.
  * 
- * Completed on: March 14, 2016
+ * Modified by Nika Zahedi for Arducam: May 28 2024
  * 
- * Modified by Nika Zahedi for Arducam: May 28l 2024
+ * This module interfaces with the Arducam to capture images and display them on the screen.
+ * It also provides functions to store images and compare them to a reference (background) image.
+ * 
+ * The Arducam module supports reading images in jpeg (used for storage), and bmp (used for display) formats.
  */
 
 #include "i2c.h"
@@ -106,7 +109,6 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 	cam.w = x+w;
 	cam.x = x;
 	cam.y = y;
-	// cam.start = (unsigned*)malloc(h*w);
 
 }
 

@@ -19,13 +19,13 @@
 #define JPEG_MAX_LEN 153600
 #define IMG_LEN_BYTES 1901
 
-//center the image on the screen? 
 #define CENTERED	1
 MLP_Model* model;
 
 extern int get_fs(void);
-
 extern void set_fs_one(void);
+
+
 
 void init_peripherals(void) {
     timer_init();
@@ -71,8 +71,7 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
     while (!image_field_has_changed()){ /*spin*/}
     int start_time = timer_get_ticks();
     int len1 = read_jpeg(img1);
-    int first_image_time = timer_get_ticks();
-    printf("First image time: %d (ms)\n", (int)((first_image_time - start_time)/(24 * 1000)));
+
     if (len1 == -1) {
         return -1;
     }
@@ -90,8 +89,7 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
     printf("!\n");
 
     int len2 = read_jpeg(img2);
-    int second_image_time = timer_get_ticks();
-    printf("Second image time: %d (ms)\n", (int)((second_image_time - first_image_time)/(24 * 1000)));
+    
     if (len2 == -1) {
         return -1;
     }
@@ -110,18 +108,11 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
 
     append_null_token(inputs, len1 - 1);
     append_null_token(inputs + IMG_LEN_BYTES, len2 - 1);
-    int preprocessing_time = timer_get_ticks();
-    printf("Preprocessing time: %d (ms)\n", (int)((preprocessing_time - second_image_time)/(24 * 1000)));
-
 
     // printf("Starting inference\n");
     int forward_results = forward(model, inputs);
     printf("Choice: %d\n", forward_results);
-    int end_time = timer_get_ticks();
-    printf("Latency: %d (ms)\n", (int)((end_time - start_time)/(24 * 1000)));
 
-    printf("Latency - preprocessing: %d (ms)\n", (int)((end_time - preprocessing_time)/(24 * 1000)));
-    
     // Wait for hand to be removed from view
     while (image_field_has_changed()){ /*spin*/}
 
@@ -130,13 +121,6 @@ int get_next_action(float* inputs, unsigned char* img1, unsigned char* img2) {
 
 void run_trackpad(void) {
     model = load_mlp_model();
-    // printf("Model layers: %d\n", model->num_layers);
-
-    // int fs = get_fs();
-    // printf("\nfs: %d\n", fs);
-    set_fs_one();
-    // fs = get_fs();
-    // printf("\nfs: %d\n", fs);
 
     float* inputs = (float *)malloc(2 * IMG_LEN_BYTES * sizeof(float));
     unsigned char* img1 = (unsigned char*)malloc(JPEG_MAX_LEN + 1);
@@ -146,7 +130,6 @@ void run_trackpad(void) {
         printf("Error: Unable to allocate memory for images\n");
         return;
     }
-    // inputs = memset(inputs, 2.0, 2 * IMG_LEN_BYTES * sizeof(float));
 
     while (1){
         get_next_action(inputs, img1, img2);
@@ -164,8 +147,6 @@ void store_image_pair(void){
 	printf("\n");
 	store_jpeg();
 
-	// TODO: add separator between each image pair?
-	// Wait for hand to be removed from view
 	while (image_field_has_changed()){ /*spin*/}
 }
 
@@ -178,10 +159,16 @@ void get_training_data(int num_image_pairs) {
 	printf("\nTraining data stored\n");
 }
 
+void init_extensions(void){
+
+    set_fs_one();
+
+}
+
 void main(void)
 {
     init_peripherals();
+    init_extensions();
 
-    // get_training_data(845);
     run_trackpad();
 }

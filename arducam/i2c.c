@@ -6,6 +6,7 @@
      Author: Julie Zelenski
      Tue Feb 13 17:44:05 PST 2024
      Minor updates May 14 2024
+     
      Modified by Nika Zahedi for Arducam May 28 2024
  */
 #include "i2c.h"

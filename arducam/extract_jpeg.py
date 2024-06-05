@@ -1,9 +1,12 @@
-# A simple script to read bytes from a file and store a jpeg file.
+# A simple script to read bytes from a file and store jpeg files to the specified directory.
+# The text file is expected to contain strings corresponding to multiple jpeg images stored in base 26 
+# as follows: a = 0, b = 1, ..., z = 25.
 # By Nika Zahedi
 
 import numpy as np
 
-data_dir = 'data/swipe_left'
+# Replace this with your own data directory.
+data_dir = 'data'
 
 with open(f'bg.jpg', 'rb') as file:
     bg_img = file.read()
@@ -53,18 +56,6 @@ try:
         with open(f'{data_dir}/output{2 * num + 1}.jpg', 'wb') as jpeg_file:
             jpeg_file.write(jpeg_data_second)
         num += 1
-    # for num, data in enumerate(images):
-    #     start_index, end_index = find_jpeg_markers(data)
-
-    #     if (end_index - start_index + 1) < 100:
-    #         continue
-    #     jpeg_data = bytes(data[start_index:end_index])
-
-    #     max_size = max(max_size, len(jpeg_data))
-    #     # Save the extracted JPEG data to a new file
-    #     with open(f'{data_dir}/output{num}.jpg', 'wb') as jpeg_file:
-    #         jpeg_file.write(jpeg_data)
-    #     print(f"JPEG file extracted and saved as output{num}.jpg")
         
     with open(f'{data_dir}/log.txt', 'wt') as data_log:
         data_log.write(f"Max size: {max_size}")

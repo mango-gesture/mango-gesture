@@ -17,7 +17,7 @@ set_fs_one:
     li t1, ~(0x3 << 13)     # Load the mask to clear FS bits (inverse of 0x3 shifted left by 13)
     and t0, t0, t1          # Apply mask to clear FS bits
 
-    # Set FS to 01
+    # Set VS to 01
     li t1, 0x1 << 13        # Load the value to set FS to 01
     or t0, t0, t1           # OR to set FS bits to 01
 
