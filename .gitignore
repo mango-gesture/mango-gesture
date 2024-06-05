@@ -32,7 +32,6 @@ wandb/
 
 # Libraries
 *.lib
-*.a
 *.la
 *.lo
 
