@@ -26,5 +26,6 @@ label_to_func = {
 
 def run_media_ctrl(label):
     label_to_func[label]()
+    # if backwards, force the last song instead of just going to the start of the current song
     if not label:
         label_to_func[0]()

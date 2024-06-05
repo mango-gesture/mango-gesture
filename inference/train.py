@@ -18,7 +18,7 @@ def main(args):
     dataset: SpotifyGestureDataset
     if args.load_path is not None:
         cfg = load_cfg(args.load_path + '.cfg')
-        with(open(args.load_path + '.pkl', 'rb')) as file:
+        with(open(args.load_path + '.ckpt', 'rb')) as file:
             params = pickle.load(file)
     else:
         cfg = MLP_config(name = args.name, sizes = sizes, modality = args.modality, c = args.c, h = args.h, w = args.w, image_size = args.image_size, classes = args.classes)
@@ -27,14 +27,14 @@ def main(args):
 
     dataset = get_dataset_from_cfg(args.data_path, cfg)
 
-    solver = optax.adamw(learning_rate=1e-5)
+    solver = optax.adamw(learning_rate=args.lr, weight_decay=args.weight_decay)
     opt_state = solver.init(params)
 
     trainset, testset = random_split(dataset, [int(len(dataset) * 0.8), len(dataset) - int(len(dataset) * 0.8)])
     train_loader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
 
-    wandb.init(project="spotify_gesture", name=args.name)
+    if args.wandb: wandb.init(project="spotify_gesture", name=args.name)
 
     key, train_key = jax.random.split(key)
     train_loop(args, params, train_loader, test_loader, opt_state, solver, train_key)
@@ -91,7 +91,7 @@ def train_loop(args, params, train_loader, test_loader, opt_state, solver, key):
 
         if epoch % args.save_interval == 0:
             mlp_serialize_binary(params, f"{args.directory}{args.name}_{epoch}.bin")
-            with open(f"{args.directory}{args.name}_{epoch}.pkl", 'wb') as file:
+            with open(f"{args.directory}{args.name}_{epoch}.ckpt", 'wb') as file:
                 pickle.dump(params, file)
 
         if epoch % args.sanity_interval == 0:
@@ -109,10 +109,9 @@ def train_loop(args, params, train_loader, test_loader, opt_state, solver, key):
             pred = jnp.argmax(logits)
             logger_dict['pred'] = pred
             logger_dict['gt'] = gt
-            # wandb.log({"inputs": [wandb.Image(inputs[0]), wandb.Image(inputs[1])]})
 
 
-        wandb.log(logger_dict)
+        if args.wandb: wandb.log(logger_dict)
 
     return params, opt_state
 
@@ -131,7 +130,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train the model')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--data_path', type=str, default='../test_data/')
-    parser.add_argument('--sizes', type=str, default='512,256')
+    parser.add_argument('--sizes', type=str, default='256,128')
     parser.add_argument('--classes', type=int, default=3)
     parser.add_argument('-m', '--modality', type=str, default='JPEG')
     parser.add_argument('--c', type=int, default=3)
@@ -144,7 +143,10 @@ if __name__ == "__main__":
     parser.add_argument('--sanity_interval', type=int, default=5)
     parser.add_argument('--val_accuracy_interval', type=int, default=5)
     parser.add_argument('--name', type=str, default='big_test')
-    parser.add_argument("-d", "--directory", type=str, default="../weights/")
+    parser.add_argument("-d", "--weight_directory", type=str, default="../weights/")
+    parser.add_argument("--lr", type=float, default=1e-5)
+    parser.add_argument("--weight_path", type=float, default=1e-5)
+    parser.add_argument("--wandb", type=bool, default=False)
     
     args = parser.parse_args()
     main(args)
