@@ -5,7 +5,7 @@ all : $(NAME).bin
 ARCH    = -march=rv64imf_zicsr -mabi=lp64
 ASFLAGS = $(ARCH)
 CFLAGS = $(ARCH) -g -Og -I include $$warn $$freestanding -fno-omit-frame-pointer
-LDFLAGS = -nostdlib -L$$CS107E/lib -T memmap.ld
+LDFLAGS = -nostdlib -L lib -T memmap.ld
 LDLIBS = -lmango -lmango_gcc
 
 
@@ -60,4 +60,3 @@ export warn = -Wall -Wpointer-arith -Wwrite-strings -Werror \
 export freestanding = -ffreestanding -nostdinc \
                       -isystem $(shell riscv64-unknown-elf-gcc -print-file-name=include)
 OBJDUMP_FLAGS = -d --no-show-raw-insn --no-addresses --disassembler-color=terminal --visualize-jumps
-# GDB_FLAGS = -q --command=$$CS107E/other/gdbsim.commands

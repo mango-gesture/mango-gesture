@@ -1,21 +1,22 @@
-PHDRS
-{
-    text PT_LOAD FLAGS(5);    /* 5 = RX */
-    data PT_LOAD FLAGS(6);    /* 6 = RW */
-    model PT_LOAD FLAGS(2);   /* 2 = R */
-}
+STACK_SIZE = 0x100000; /* 1 MB */
 
 SECTIONS
 {
-        .text 0x40000000 :  { *(.text.start) *(.text*) } :text
-        .rodata :           { *(.rodata*) *(.srodata*) } :text
-        .data :             { *(.sdata*) } :data
-        __bss_start__   = .;
-        .bss :              { *(.bss*)  *(.sbss*) *(COMMON) } :data
-        __bss_end__     = ALIGN(8);
-        .model 0x60000000 : { /* Empty */ } :model // the weights must be written to this section directly
+    .text  0x40000000     :  { *(.text.start) *(.text*) }
+    .rodata               :  { *(.rodata*) *(.srodata*) }
+    __text_end            = .;
+    .data  ALIGN(0x20000) :  { *(.sdata*) }
+    __bss_start           = .;
+    .bss                  :  { *(.bss*)  *(.sbss*) *(COMMON) }
+    __bss_end             = .;
+    .heap  0x44000000     :  { __heap_start = .; }
+    .stack 0x50000000 - STACK_SIZE : {
+        __heap_max = .;
+        . = . + STACK_SIZE;
+        __stack_top = .;
+    }
 }
 
 /* Force link of _start and verify correct position */
-ENTRY(_start)
+ENTRY(_start_gdb)
 ASSERT(_start == ADDR(.text), "_start symbol must be placed first in text section")
