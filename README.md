@@ -23,9 +23,9 @@ Our system identifies the start of a gesture via the change in compression ratio
 
 We used the surface of a table as our scene and used touchpad gestures on the surface of the table. We also placed a lamp over our setup and suspended our camera so that it faced the table's surface. It is important to note down or otherwise mark your scene area so you can check for distribution shift between train and test times. To run quickly on the Pi, the model has to be kept small and thus not very robust. 
 
-(TODO: IMAGE HERE)
+![Setup](media/setup.jpeg){:height="50%" width="50%"}
 
-####Wiring the ArduCAM to the Pi
+*Wiring the ArduCAM to the Pi:*
 ArduCAM:  Pi
 CS     -> CS0
 MOSI   -> MOSI
@@ -36,7 +36,7 @@ VCC    -> 3V
 SDA    -> PG13
 SCL    -> PG12
 
-####Communication Drivers
+*Communication Drivers:*
 The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.
 The SPI module was adapted from Yifan Yang's (yyang29@stanford.edu) SPI module. We added code to support reading data in burst mode and data of variable sizes (such as JPG images).
 The I2C module was adapted from Julie Zelenski's (https://github.com/zelenski) I2C module with minor changes to support compatibility with Omni.
@@ -47,7 +47,7 @@ Our suggested method to do this is to start a minicom window in capture mode bef
 This saves the output of minicom to the file `capture.txt`. We then convert the data we want to send to text format (e.g. bytes are converted to base-26 text strings) and print to minicom. 
 Note that ```minicom -C capture.txt``` appends to the existing content in `capture.txt` and doesn't overwrite it.
 
-(TODO: dependencies)
+You will need Jax, wandb, and some other standard python libraries. We recommend using a conda environment to manage these dependencies. 
 
 After setting up your scene and picking some set of gestures to learn, proceed to the next section.
 ### Collecting data and training
