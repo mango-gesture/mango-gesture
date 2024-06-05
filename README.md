@@ -25,7 +25,7 @@ We used the surface of a table as our scene and used touchpad gestures on the su
 
 (TODO: IMAGE HERE)
 
-####Wiring the ArduCAM to the Pi
+*Wiring the ArduCAM to the Pi*
 ArduCAM:  Pi
 CS     -> CS0
 MOSI   -> MOSI
@@ -36,7 +36,7 @@ VCC    -> 3V
 SDA    -> PG13
 SCL    -> PG12
 
-####Communication Drivers
+*Communication Drivers*
 The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.
 The SPI module was adapted from Yifan Yang's (yyang29@stanford.edu) SPI module. We added code to support reading data in burst mode and data of variable sizes (such as JPG images).
 The I2C module was adapted from Julie Zelenski's (https://github.com/zelenski) I2C module with minor changes to support compatibility with Omni.
