@@ -43,7 +43,11 @@ The I2C module was adapted from Julie Zelenski's (https://github.com/zelenski) I
 
 To collect data written to the Mango Pi (for training or monitoring purposes), we need to send data back to our local device, which we do using uart. 
 Our suggested method to do this is to start a minicom window in capture mode before running the program: 
-```minicom -C capture.txt```
+
+```console
+minicom -C capture.txt
+```
+
 This saves the output of minicom to the file `capture.txt`. We then convert the data we want to send to text format (e.g. bytes are converted to base-26 text strings) and print to minicom. 
 Note that ```minicom -C capture.txt``` appends to the existing content in `capture.txt` and doesn't overwrite it.
 
