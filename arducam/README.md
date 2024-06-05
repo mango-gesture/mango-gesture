@@ -29,4 +29,4 @@ First, both the SPI and I2C modules have to be initialized. Then, the Omnivision
 ###Features
 * Saving images to local device via uart: Can be used in JPG mode.
 * Streaming images: Can be used in BMP mode.
-* Detecting changes in field of view: Can be used in JPG mode. The arducam needs to first be calibrated to the default background using the 'arducam_calibrate' method.
+* Detecting changes in field of view: Can be used in JPG mode. The arducam needs to first be calibrated to the default background using the `arducam_calibrate` method.

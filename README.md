@@ -25,13 +25,34 @@ We used the surface of a table as our scene and used touchpad gestures on the su
 
 (TODO: IMAGE HERE)
 
-(TODO: NIKA, talk about wiring (UART, SPI, etc.))
+####Wiring the ArduCAM to the Pi
+ArduCAM:  Pi
+CS     -> CS0
+MOSI   -> MOSI
+MISO   -> MISO
+SCK    -> SCLK
+GND    -> GND
+VCC    -> 3V
+SDA    -> PG13
+SCL    -> PG12
+
+####Communication Drivers
+The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.
+The SPI module was adapted from Yifan Yang's (yyang29@stanford.edu) SPI module. We added code to support reading data in burst mode and data of variable sizes (such as JPG images).
+The I2C module was adapted from Julie Zelenski's (https://github.com/zelenski) I2C module with minor changes to support compatibility with Omni.
+
+To collect data written to the Mango Pi (for training or monitoring purposes), we need to send data back to our local device, which we do using uart. 
+Our suggested method to do this is to start a minicom window in capture mode before running the program: 
+```minicom -C capture.txt```
+This saves the output of minicom to the file `capture.txt`. We then convert the data we want to send to text format (e.g. bytes are converted to base-26 text strings) and print to minicom. 
+Note that ```minicom -C capture.txt``` appends to the existing content in `capture.txt` and doesn't overwrite it.
 
 (TODO: dependencies)
 
 After setting up your scene and picking some set of gestures to learn, proceed to the next section.
 ### Collecting data and training
-(TODO: Nika. Just write usage instructions, no need to go into how things work yet)
+In `main.c`, use the method `get_training_data` with argument `num_image_pairs` to collect that number of training image pairs. The image pairs are written to minicom and can be captured using the workflow explained above. Then, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as some output directory. The images will be saved to this directory in the format `output{i}`, where i is the image number. Only image pairs where both pairs have sufficient difference with a baseline background image (`bg.jpg`) are saved. This feature can be removed by using a completely black background baseline image.
+The training data for each gesture should be collected separately and placed in different directories.
 
 After collection, you should have several folders; one for each gesture. Ensure that these folders are numbered 0-N where you have N+1 gestures you wish to learn. These are the class labels for your gestures.  Within the folders, your data should be labeled output0.jpeg ... outputm.jpeg. Each consecutive pair (output0, output1; outputk, output{k+1}) represents a before-after pair that our mlp will learn to predict labels from. 
 
@@ -48,9 +69,7 @@ train.py accepts many other cmdline args to customize your training run and enab
 train.py will save checkpoints as .ckpt files as well as .bin files. The .ckpt files are for additional training and/or inference within Jax; the .bin file is what your Pi will use for inference. 
 
 ### Controlling Your Computer
-Before you make run (below), (TODO: nika explain how to start minicom in log mode)
-
-The application will print predictions to minicom's log file. ```computer_control.py``` watches this log file and calls functions from ```media_ctrl.py``` based on the model's predictions. Start ```computer_control.py``` via
+Before you make run (below), start minicom in capture mode (see section "Communication Drivers" above). The application will print predictions to minicom's log file. ```computer_control.py``` watches this log file and calls functions from ```media_ctrl.py``` based on the model's predictions. Start ```computer_control.py``` via
 
 ```console
 (your_conda_env_here)[inference]$ python computer_control.py path_to_log_file.txt
@@ -74,7 +93,7 @@ Then
 ## Design and Functionality
 
 ### Camera
-(TODO: NIKA)
+Check out arducam/README.md for details on the ArduCAM.
 
 ### Vision Model and Training
 Jax is a scientific computing and autodifferentiation framework that simplifies parallelization and just-in-time compiling. We use an mlp for our vision model and train it using Jax. mlp code (```inference/mlp.py```) is thus pretty simple; the user only has to specify the number and sizes of hidden layers as well as the input and output dimensions. 
