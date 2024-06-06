@@ -26,15 +26,15 @@ We used the surface of a table as our scene and used touchpad gestures on the su
 ![Setup](media/setup.jpeg){:height="50%" width="50%"}
 
 **Wiring the ArduCAM to the Pi:**
-ArduCAM:  Pi
-CS     -> CS0
-MOSI   -> MOSI
-MISO   -> MISO
-SCK    -> SCLK
-GND    -> GND
-VCC    -> 3V
-SDA    -> PG13
-SCL    -> PG12
+* ArduCAM:  Pi
+* CS     -> CS0
+* MOSI   -> MOSI
+* MISO   -> MISO
+* SCK    -> SCLK
+* GND    -> GND
+* VCC    -> 3V
+* SDA    -> PG13
+* SCL    -> PG12
 
 **Communication Drivers:**
 The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.
