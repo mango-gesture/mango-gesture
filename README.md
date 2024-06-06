@@ -140,5 +140,5 @@ Before computing a forward pass, the same normalization and ```NULL_TOKEN``` pad
 After computing a forward pass, the argmax of the class probabilities is taken and returned to the main program. 
 
 # Authors
-[Aaditya Prasad](https://aaditya-prasad.github.io/)<sup>1</sup>,
-[Nika Zahedi](https://www.linkedin.com/in/nika-zahedi-6647802a8/)<sup>1</sup>
+[Aaditya Prasad](https://aaditya-prasad.github.io/),
+[Nika Zahedi](https://www.linkedin.com/in/nika-zahedi-6647802a8/)
