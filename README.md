@@ -66,7 +66,7 @@ In a different terminal window
 ```console
 [mango-gesture]$ make run
 ```
-When data collection for each class is complete, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as the gesture class (denoted as a number starting from 0).  
+After completing data collection for a single gesture, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as the gesture class (denoted as a number starting from 0).  
 
 ```console
 [arducam]$ python extract_jpeg.py -c "0" -f "capture.txt"
