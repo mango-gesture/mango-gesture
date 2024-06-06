@@ -38,8 +38,8 @@ We used the surface of a table as our scene and used touchpad gestures on the su
 
 **Communication Drivers:**
 The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.
-The SPI module was adapted from Yifan Yang's (yyang29@stanford.edu) SPI module. We added code to support reading data in burst mode and data of variable sizes (such as JPG images).
-The I2C module was adapted from Julie Zelenski's (https://github.com/zelenski) I2C module with minor changes to support compatibility with Omni.
+The SPI module was adapted from [Yifan Yang's](yyang29@stanford.edu) SPI module. We added code to support reading data in burst mode and data of variable sizes (such as JPG images).
+The I2C module was adapted from [Julie Zelenski's](https://github.com/zelenski) I2C module with minor changes to support compatibility with Omni.
 
 To collect data written to the Mango Pi (for training or monitoring purposes), we need to send data back to our local device, which we do using uart. 
 Our suggested method to do this is to start a minicom window in capture mode before running the program: 
