@@ -5,7 +5,7 @@ Nika Zahedi, Aaditya Prasad
 
 
 ### Overview
-The arducam subproject aims to interface an ArduCAM with the Mango Pi.The selected camera was an [ArduCAM Mini][arducam-mini], a 2 MP camera designed to work with the [Arduino][arduino]. The ArduCAM utilizes an Omnivision CMOS Image Sensor [OV2640][ov2640-ds]. As a starting point, we adaped code for an ArduCAM-Raspberry Pi interface written by [Eric Fritz](https://github.com/efritz09) and [Arjun Balasingam](https://github.com/arjunvb).
+The arducam subproject aims to interface an ArduCAM with the Mango Pi.The selected camera was an [ArduCAM Mini](https://www.arducam.com/product/arducam-2mp-spi-camera-b0067-arduino/), a 2 MP camera designed to work with the Arduino. The ArduCAM utilizes an Omnivision CMOS Image Sensor [OV2640](https://www.uctronics.com/download/cam_module/OV2640DS.pdf). As a starting point, we adaped code for an ArduCAM-Raspberry Pi interface written by [Eric Fritz](https://github.com/efritz09) and [Arjun Balasingam](https://github.com/arjunvb).
 
 ### Communication Drivers
 The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.
