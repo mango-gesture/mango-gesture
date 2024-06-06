@@ -23,7 +23,7 @@ Our system identifies the start of a gesture via the change in compression ratio
 
 We used the surface of a table as our scene and used touchpad gestures on the surface of the table. We also placed a lamp over our setup and suspended our camera so that it faced the table's surface. It is important to note down or otherwise mark your scene area so you can check for distribution shift between train and test times. To run quickly on the Pi, the model has to be kept small and thus not very robust. 
 
-![Setup](media/setup.jpeg){:height="50%" width="50%"}
+<img src="media/setup.jpeg" alt="setup" width="65%"/>
 
 **Wiring the ArduCAM to the Pi:**
 * ArduCAM:  Pi
