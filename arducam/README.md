@@ -14,15 +14,15 @@ The I2C module was adapted from [Julie Zelenski's](https://github.com/zelenski) 
 
 ### Wiring the ArduCAM to the Pi
 ArduCAM:  Pi
-CS     -> CS0
-MOSI   -> MOSI
-MISO   -> MISO
-SCK    -> SCLK
-GND    -> GND
-VCC    -> 3V
-SDA    -> PG13
-SCL    -> PG12
-
+* CS     -> CS0
+* MOSI   -> MOSI
+* MISO   -> MISO
+* SCK    -> SCLK
+* GND    -> GND
+* VCC    -> 3V
+* SDA    -> PG13
+* SCL    -> PG12
+  
 ### Initializing the ArduCAM
 First, both the SPI and I2C modules have to be initialized. Then, the Omnivision sensor needs to be properly initialized with either the JPEG or BMP modes. 
 
