@@ -71,7 +71,7 @@ When data collection for each class is complete, run `extract_jpeg.py` in the ar
 ```console
 [arducam]$ python extract_jpeg.py -c "0" -f "capture.txt"
 ```
-The images will be saved to `arducam/data/[class]` directory in the format `output{i}`, where i is the image number. Only image pairs where both pairs have sufficient difference with a baseline background image (`bg.jpg`) are saved. This feature can be removed by using a completely black background baseline image.
+The images will be saved to `arducam/data/[class]` directory in the format `output{i}`, where i is the image number. Only image pairs where both pairs have sufficient difference with a baseline background image (`bg.jpg`) are saved. This feature can be removed by using a completely black background baseline image. When saving each gesture class, an extra file `log.txt` is saved to the directory which contains the maximum image size among the images that were read. This size can be used to set the required amount of padding during training (see below).
 The training data for each gesture should be collected separately and placed in different directories.
 
 After collection, you should have several folders; one for each gesture. Ensure that these folders are numbered 0-N where you have N+1 gestures you wish to learn. These are the class labels for your gestures.  Within the folders, your data should be labeled output0.jpeg ... outputm.jpeg. Each consecutive pair (output0, output1; outputk, output{k+1}) represents a before-after pair that our mlp will learn to predict labels from. 
