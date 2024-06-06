@@ -56,7 +56,7 @@ You will need Jax, wandb, and some other standard python libraries. We recommend
 After setting up your scene and picking some set of gestures to learn, proceed to the next section.
 ### Collecting data and training
 In `main.c`, use the method `get_training_data` with argument `num_image_pairs` to collect that number of training image pairs. The camera captures an image pair when it detects sufficient change in its field of view compared to the background frame.
-When running main, by calling `init_peripherals` with the `calibrate` argument set to one, the program begins by calibrating the camera so that the change detection threshold aligns with the recorded gesture. If this argument is zero, then the calibration step is skipped and some default threshold is used.
+When running main, by calling `init_peripherals` with the `calibrate` argument set to one, the program begins by calibrating the camera so that the change detection threshold aligns with the recorded gesture. When calibrating, the camera samples the background image for some time, and then prompts the user to bring their hand into the camera's view. It then sets the threshold required to trigger image capture. If the `calibrate` argument is zero, then the calibration step is skipped and some default threshold is used.
 The image pairs are written to minicom and then decoded by a python script.
 
 ```console
