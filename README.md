@@ -45,7 +45,7 @@ To collect data written to the Mango Pi (for training or monitoring purposes), w
 Our suggested method to do this is to start a minicom window in capture mode before running the program: 
 
 ```console
-minicom -C capture.txt
+[arducam]$ minicom -C capture.txt
 ```
 
 This saves the output of minicom to the file `capture.txt`. We then convert the data we want to send to text format (e.g. bytes are converted to base-26 text strings) and print to minicom. 
@@ -66,7 +66,7 @@ In a different terminal window
 ```console
 [spotify_gesture]$ make run
 ```
-When data collection for each class is complete, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as some output directory. 
+When data collection for each class is complete, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as the gesture class (denoted as a number starting from 0).  
 
 ```console
 [arducam]$ python extract_jpeg.py -c "0" -f "capture.txt"
