@@ -107,7 +107,7 @@ Ensure minicom is running in log mode and ```computer_control.py``` is watching 
 Then
 
 ```console
-(your_conda_env_here)[mango-gesture]$ make_run
+[mango-gesture]$ make_run
 ```
 
 ## Design and Functionality
