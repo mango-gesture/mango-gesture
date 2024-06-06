@@ -1,10 +1,5 @@
 # Mango Gesture
 
-[Aaditya Prasad](https://aaditya-prasad.github.io/)<sup>1</sup>,
-[Nika Zahedi](https://www.linkedin.com/in/nika-zahedi-6647802a8/)<sup>1</sup>
-
-<sup>1</sup>Stanford University
-
 This repository contains code for a trainable gesture detection module built for the Mango-Pi. We use detected gestures to control Spotify from a Mac using osascript, but it is incredibly easy to adjust this for other tasks.  
 
 The next few sections detail usage instructions, specifically
@@ -143,3 +138,7 @@ The ```MLP_Model``` and ```MLP_Layer``` structs abstract this system, and ```MLP
 Before computing a forward pass, the same normalization and ```NULL_TOKEN``` padding is performed on the input images. 
 
 After computing a forward pass, the argmax of the class probabilities is taken and returned to the main program. 
+
+# Authors
+[Aaditya Prasad](https://aaditya-prasad.github.io/)<sup>1</sup>,
+[Nika Zahedi](https://www.linkedin.com/in/nika-zahedi-6647802a8/)<sup>1</sup>
