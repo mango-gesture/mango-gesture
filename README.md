@@ -81,7 +81,7 @@ You also have the max image size that was seen during data collection. While thi
 Once you have decided on an image size, switch to the inference directory and run the following command to start a training run:
 
 ```console
-(your_conda_env_here)[inference]$ python train.py --weight_path "your/ckpts/go/here" --data_path "your/data/was/here" -classes N+1 -i chosen_image_size
+(your_conda_env_here)[inference]$ python train.py --weight_path "your/ckpts/go/here" --data_path "your/data/was/here" --classes N+1 --image_size chosen_image_size
 ```
 
 train.py accepts many other cmdline args to customize your training run and enable wandb logging. We recommend utilizing wandb logging (which is off by default) so you can check val accuracy in addition to loss values. 
