@@ -26,6 +26,7 @@ We used the surface of a table as our scene and used touchpad gestures on the su
 <img src="media/setup.jpeg" alt="setup" width="65%"/>
 
 **Wiring the ArduCAM to the Pi:**
+
 ArduCAM:  Pi
 * CS     -> CS0
 * MOSI   -> MOSI
