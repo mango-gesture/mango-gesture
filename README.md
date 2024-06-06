@@ -113,7 +113,8 @@ Then
 ## Design and Functionality
 To detect gestures, we wait for the camera to detect a hand via the compression ratio of the scene. We then have the camera take two images with a short delay between them. A vision model predicts a gesture class based on these temporally ordered images, and we return the prediction. 
 ### Camera
-Check out arducam/README.md for details on the ArduCAM.
+An [ArduCAM Mini](https://www.arducam.com/product/arducam-2mp-spi-camera-b0067-arduino/), a 2 MP camera designed to work with the Arduino was used. The ArduCAM utilizes an Omnivision CMOS Image Sensor [OV2640](https://www.uctronics.com/download/cam_module/OV2640DS.pdf).
+Check out arducam/README.md for details about the ArduCAM.
 
 ### Vision Model and Training
 Jax is a scientific computing and autodifferentiation framework that simplifies parallelization and just-in-time compiling. We use an mlp for our vision model and train it using Jax. mlp code (```inference/mlp.py```) is thus pretty simple; the user only has to specify the number and sizes of hidden layers as well as the input and output dimensions. 
