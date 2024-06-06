@@ -1,4 +1,4 @@
-# spotify_gesture
+# Mango Gesture
 
 This repository contains code for a trainable gesture detection module built for the Mango-Pi. We use detected gestures to control Spotify from a Mac using osascript, but it is incredibly easy to adjust this for other tasks.  
 
@@ -64,7 +64,7 @@ The image pairs are written to minicom and then decoded by a python script.
 ```
 In a different terminal window
 ```console
-[spotify_gesture]$ make run
+[mango_gesture]$ make run
 ```
 When data collection for each class is complete, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as the gesture class (denoted as a number starting from 0).  
 
@@ -107,7 +107,7 @@ Ensure minicom is running in log mode and ```computer_control.py``` is watching 
 Then
 
 ```console
-(your_conda_env_here)[spotify_gesture]$ make_run
+(your_conda_env_here)[mango_gesture]$ make_run
 ```
 
 ## Design and Functionality
