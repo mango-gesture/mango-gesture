@@ -111,7 +111,7 @@ Then
 ```
 
 ## Design and Functionality
-
+To detect gestures, we will wait for the camera to detect a hand via the compression ratio of the scene. We will then have the camera take two images with a short delay between them. A vision model will predict a gesture class based on these temporally ordered images, and we will return the prediction. 
 ### Camera
 Check out arducam/README.md for details on the ArduCAM.
 
