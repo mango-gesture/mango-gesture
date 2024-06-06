@@ -64,7 +64,7 @@ The image pairs are written to minicom and then decoded by a python script.
 ```
 In a different terminal window
 ```console
-[mango-gesture]$ make run
+[Mango-Gesture]$ make run
 ```
 After completing data collection for a single gesture, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as the gesture class (denoted as a number starting from 0).  
 
@@ -107,7 +107,7 @@ Ensure minicom is running in log mode and ```computer_control.py``` is watching 
 Then
 
 ```console
-[mango-gesture]$ make_run
+[Mango-Gesture]$ make_run
 ```
 
 ## Design and Functionality
