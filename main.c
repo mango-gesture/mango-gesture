@@ -27,7 +27,7 @@ extern void set_fs_one(void);
 
 
 
-void init_peripherals(void) {
+void init_peripherals(int calibrate) {
     timer_init();
 	timer_delay_ms(100);
 
@@ -48,7 +48,8 @@ void init_peripherals(void) {
 
     timer_delay_ms(100);
 	arducam_init_bg();
-    arducam_calibrate();
+    if (calibrate)
+        arducam_calibrate();
 }
 
 void normalize_image(float* inputs, unsigned char* img, int len) {
@@ -167,7 +168,7 @@ void init_extensions(void){
 
 void main(void)
 {
-    init_peripherals();
+    init_peripherals(1);
     init_extensions();
 
     run_trackpad();

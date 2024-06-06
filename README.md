@@ -25,7 +25,7 @@ We used the surface of a table as our scene and used touchpad gestures on the su
 
 ![Setup](media/setup.jpeg){:height="50%" width="50%"}
 
-*Wiring the ArduCAM to the Pi:*
+**Wiring the ArduCAM to the Pi:**
 ArduCAM:  Pi
 CS     -> CS0
 MOSI   -> MOSI
@@ -36,7 +36,7 @@ VCC    -> 3V
 SDA    -> PG13
 SCL    -> PG12
 
-*Communication Drivers:*
+**Communication Drivers:**
 The ArduCAM reqires both SPI and I2C to control the image sensor and recieve images from the camera. SPI was used to send image capture commands as well as transmit the raw pixel or JPEG data. I2C was used to change the Omnivision sensor's registers directly, allowing the user to adjust the camera settings.
 The SPI module was adapted from Yifan Yang's (yyang29@stanford.edu) SPI module. We added code to support reading data in burst mode and data of variable sizes (such as JPG images).
 The I2C module was adapted from Julie Zelenski's (https://github.com/zelenski) I2C module with minor changes to support compatibility with Omni.
@@ -55,7 +55,23 @@ You will need Jax, wandb, and some other standard python libraries. We recommend
 
 After setting up your scene and picking some set of gestures to learn, proceed to the next section.
 ### Collecting data and training
-In `main.c`, use the method `get_training_data` with argument `num_image_pairs` to collect that number of training image pairs. The image pairs are written to minicom and can be captured using the workflow explained above. Then, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as some output directory. The images will be saved to this directory in the format `output{i}`, where i is the image number. Only image pairs where both pairs have sufficient difference with a baseline background image (`bg.jpg`) are saved. This feature can be removed by using a completely black background baseline image.
+In `main.c`, use the method `get_training_data` with argument `num_image_pairs` to collect that number of training image pairs. The camera captures an image pair when it detects sufficient change in its field of view compared to the background frame.
+When running main, by calling `init_peripherals` with the `calibrate` argument set to one, the program begins by calibrating the camera so that the change detection threshold aligns with the recorded gesture. If this argument is zero, then the calibration step is skipped and some default threshold is used.
+The image pairs are written to minicom and then decoded by a python script.
+
+```console
+[arducam]$ minicom -C capture.txt
+```
+In a different terminal window
+```console
+[spotify_gesture]$ make run
+```
+When data collection for each class is complete, run `extract_jpeg.py` in the arducam directory, and specify the text file where the images are saved, as well as some output directory. 
+
+```console
+[arducam]$ python extract_jpeg.py -c "0" -f "capture.txt"
+```
+The images will be saved to `arducam/data/[class]` directory in the format `output{i}`, where i is the image number. Only image pairs where both pairs have sufficient difference with a baseline background image (`bg.jpg`) are saved. This feature can be removed by using a completely black background baseline image.
 The training data for each gesture should be collected separately and placed in different directories.
 
 After collection, you should have several folders; one for each gesture. Ensure that these folders are numbered 0-N where you have N+1 gestures you wish to learn. These are the class labels for your gestures.  Within the folders, your data should be labeled output0.jpeg ... outputm.jpeg. Each consecutive pair (output0, output1; outputk, output{k+1}) represents a before-after pair that our mlp will learn to predict labels from. 
