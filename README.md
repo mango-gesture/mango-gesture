@@ -76,7 +76,7 @@ The training data for each gesture should be collected separately and placed in 
 
 After collection, you should have several folders; one for each gesture. Ensure that these folders are numbered 0-N where you have N+1 gestures you wish to learn. These are the class labels for your gestures.  Within the folders, your data should be labeled output0.jpeg ... outputm.jpeg. Each consecutive pair (output0, output1; outputk, output{k+1}) represents a before-after pair that our mlp will learn to predict labels from. 
 
-You also have the max image size that was seen during data collection. While this image size will work for 100% of your training data and likely all of your test data, we recommend you reduce the image size to decrease inference latency and maintain 95-99% of your data. Example.ipynb has many example function calls across our training and inference pipelines. Scroll down to the Image Size Calculator and use the next 4 cells to test out different image sizes. 
+You also have the max image size that was seen during data collection. While this image size will work for 100% of your training data and likely all of your test data, we recommend you reduce the image size to decrease inference latency and maintain 95-99% of your data. ```example.ipynb``` has many example function calls across our training and inference pipelines. Scroll down to the Image Size Calculator and use the next 4 cells to test out different image sizes. 
 
 Once you have decided on an image size, switch to the inference directory and run the following command to start a training run:
 
