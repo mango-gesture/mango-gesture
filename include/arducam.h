@@ -44,7 +44,7 @@
 
 
 // functions
-void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y);
+void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y, int mode);
 void stream_image(void);
 void store_jpeg(void);
 int read_jpeg(unsigned char *rxd);

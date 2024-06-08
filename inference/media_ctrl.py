@@ -20,8 +20,8 @@ def last_song():
 # }
 
 label_to_func = {
-    0: last_song,
-    1: skip_song,
+    0: skip_song,
+    1: last_song,
 }
 
 def run_media_ctrl(label):

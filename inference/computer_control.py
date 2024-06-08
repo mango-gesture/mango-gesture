@@ -37,7 +37,7 @@ def watch_log_file(args):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('file', type=str, required=True)
+    parser.add_argument('-f', '--file', type=str, required=True)
     args = parser.parse_args()
 
     print(f"Watching log file: {args.file}")

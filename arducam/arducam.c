@@ -47,7 +47,7 @@ int find_field_diff(int *len_diff);
 
 
 //Arducam initialization functions
-void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y);
+void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y, int mode);
 void arducam_init_bg(void);
 void arducam_calibrate(void);
 
@@ -87,7 +87,7 @@ static volatile camera_t cam;
  */
 
 //Initializes all the required peripherals, checks the comms, and sets the camera_t values
-void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
+void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y, int mode) {
 	spi_init();
 	// printf("spi initialized\n");
 
@@ -101,7 +101,7 @@ void arducam_init(unsigned w, unsigned h, unsigned x, unsigned y) {
 		return;
 	}
 
-	omni_init(JPG_MODE); 
+	omni_init(mode); 
 	arducam_clear_fifo();
 	cam.height = h;
 	cam.width = w;
@@ -224,7 +224,6 @@ int read_jpeg(unsigned char *rxd){
 // Reads a BMP image from the Arducam and displays to the screen
 void stream_bmp(){
 
-	printf("Starting single-frame capture...\n");
 	int start_ticks = timer_get_ticks();
 
 	const int length = cam.width * cam.height * 2;
@@ -289,9 +288,9 @@ void store_jpeg(void) {
 void stream_image(void) {
 
 	printf("streaming...\n");
-	gl_clear(GL_AMBER);
+	gl_clear(GL_BLACK);
 	gl_swap_buffer();
-	gl_clear(GL_AMBER);
+	gl_clear(GL_BLACK);
 	gl_swap_buffer();
 
 	while(1){

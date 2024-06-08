@@ -13,8 +13,8 @@
 #include "gl.h"
 
 // size of the image coming in
-#define WIDTH   160
-#define HEIGHT  120
+#define WIDTH   320
+#define HEIGHT  240
 
 #define JPEG_MAX_LEN 153600
 #define IMG_LEN_BYTES 1901
@@ -27,7 +27,7 @@ extern void set_fs_one(void);
 
 
 
-void init_peripherals(int calibrate) {
+void init_peripherals(int calibrate, int arducam_mode) {
     timer_init();
 	timer_delay_ms(100);
 
@@ -43,8 +43,8 @@ void init_peripherals(int calibrate) {
 
 	//start up the camera, set the start of the image's top left corner in the 
 	//graphics display. This starts SPI and I2C inside
-	if(CENTERED) arducam_init(WIDTH,HEIGHT,image_start,0);
-	else arducam_init(WIDTH,HEIGHT,0,0);
+	if(CENTERED) arducam_init(WIDTH,HEIGHT,image_start,0, arducam_mode);
+	else arducam_init(WIDTH,HEIGHT,0,0, arducam_mode);
 
     timer_delay_ms(100);
 	arducam_init_bg();
@@ -166,10 +166,15 @@ void init_extensions(void){
 
 }
 
+void stream_arudcam_img(void){
+    stream_image();
+}
+
 void main(void)
 {
-    init_peripherals(1);
+    init_peripherals(0, BMP_MODE);
     init_extensions();
 
-    run_trackpad();
+    stream_arudcam_img();
+    // run_trackpad();
 }
